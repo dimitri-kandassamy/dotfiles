@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+notespath="$HOME/Code/dimitri-kandassamy/notes"
+
+alias notes='code $notespath'
