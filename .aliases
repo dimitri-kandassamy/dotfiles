@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
 notespath="$HOME/Code/dimitri-kandassamy/notes"
+cookbookpath="$HOME/Code/dimitri-kandassamy/cookbook"
 
 alias notes='code $notespath'
+alias cookbook='code $cookbookpath'
