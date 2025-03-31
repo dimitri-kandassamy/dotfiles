@@ -13,38 +13,6 @@ sudo -v
 # Keep-alive: update existing `sudo` time stamp until `.macos` has finished
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-
-#########################################################################
-# My Customizations                                                     #
-#########################################################################
-
-echo "Hello $(whoami)! Let's start the setup."
-
-echo "Installing Homebrew ..."
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/aznaar/.zprofile
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-echo "Install programs with brew"
-brew install git gh pyenv
-
-echo "installing apps with brew --cask"
-brew install --cask google-chrome firefox brave-browser \
-visual-studio-code 1password skype iterm2 \
-vlc discord obs zoom spotify slack \
-audacity docker evernote notion
-
-echo "Generating a new SSH key for GitHub"
-ssh-keygen -t ed25519 -C "dimitri.kandassamy@gmail.com" -f ~/.ssh/id_ed25519
-eval "$(ssh-agent -s)"
-touch ~/.ssh/config
-echo "Host *\n AddKeysToAgent yes\n UseKeychain yes\n IdentityFile ~/.ssh/id_ed25519" | tee ~/.ssh/config
-ssh-add -K ~/.ssh/id_ed25519
-echo "run 'pbcopy < ~/.ssh/id_ed25519.pub' and paste that into GitHub"
-
-echo "System modifications"
-
 # Set computer name (as done via System Preferences → Sharing)
 #sudo scutil --set ComputerName "0x6D746873"
 #sudo scutil --set HostName "0x6D746873"
@@ -817,18 +785,27 @@ defaults write com.google.Chrome.canary AppleEnableMouseSwipeNavigateWithScrolls
 ###############################################################################
 
 for app in "Activity Monitor" \
-  "Address Book" \
-  "Calendar" \
-  "cfprefsd" \
-  "Contacts" \
-  "Dock" \
-  "Finder" \
-  "Mail" \
-  "Messages" \
-  "Photos" \
-  "Safari" \
-  "SystemUIServer" \
-  "iCal"; do
-  killall "${app}" &> /dev/null
+	"Address Book" \
+	"Calendar" \
+	"cfprefsd" \
+	"Contacts" \
+	"Dock" \
+	"Finder" \
+	"Google Chrome Canary" \
+	"Google Chrome" \
+	"Mail" \
+	"Messages" \
+	"Opera" \
+	"Photos" \
+	"Safari" \
+	"SizeUp" \
+	"Spectacle" \
+	"SystemUIServer" \
+	"Terminal" \
+	"Transmission" \
+	"Tweetbot" \
+	"Twitter" \
+	"iCal"; do
+	killall "${app}" &> /dev/null
 done
 echo "Done. Note that some of these changes require a logout/restart to take effect."
