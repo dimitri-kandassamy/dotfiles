@@ -39,5 +39,7 @@ export PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/pla
 [[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ]] && source "$HOME/.dart-cli-completion/zsh-config.zsh"
 
 # Terraform shell completion
-autoload -U +X bashcompinit && bashcompinit
-complete -o nospace -C "$(which terraform 2>/dev/null || true)" terraform
+if command -v terraform &>/dev/null; then
+  autoload -U +X bashcompinit && bashcompinit
+  complete -o nospace -C "$(which terraform)" terraform
+fi
