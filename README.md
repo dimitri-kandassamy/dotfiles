@@ -85,9 +85,27 @@ Once `1password-cli` is installed and you've enabled CLI integration in the 1Pas
 - **Android SDK** — install via Android Studio; SDK path is expected at `~/Library/Android/sdk`
 - **1Password** — install the desktop app and sign in (the cask is in `Brewfile`); enable CLI integration in Settings → Developer.
 
-## Adding a new machine config
+## Day-to-day workflow
 
-Edit `.chezmoi.toml.tmpl` to add machine-specific variables and use `{{ .variableName }}` in any `*.tmpl` dotfile.
+```bash
+chezmoi update          # pull latest from the remote and apply
+chezmoi apply           # re-apply local source to $HOME (idempotent)
+chezmoi diff            # preview pending changes before applying
+chezmoi cd              # drop into the source dir ($HOME/.local/share/chezmoi)
+chezmoi re-add ~/.zshrc # capture local edits back into the source
+chezmoi doctor          # diagnose a broken setup
+```
+
+After editing files inside the source dir, commit and push from there:
+
+```bash
+chezmoi cd
+git add . && git commit -m "…" && git push
+```
+
+## Adding a new machine variable
+
+Edit `.chezmoi.toml.tmpl` to add a `promptStringOnce` line and a `[data]` entry, then reference it as `{{ .variableName }}` in any `*.tmpl` file. Existing machines won't re-prompt unless you delete the value from `~/.config/chezmoi/chezmoi.toml`.
 
 ## Thanks
 
