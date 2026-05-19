@@ -25,15 +25,17 @@ source "$HOME/.aliases"
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 
-# Flutter SDK
-export PATH="$PATH:$HOME/DevTools/flutter/bin"
+# Flutter SDK (manual install at ~/DevTools/flutter)
+[[ -d "$HOME/DevTools/flutter/bin" ]] && export PATH="$PATH:$HOME/DevTools/flutter/bin"
 
 # Dart pub cache (mason CLI, etc.)
-export PATH="$PATH:$HOME/.pub-cache/bin"
+[[ -d "$HOME/.pub-cache/bin" ]] && export PATH="$PATH:$HOME/.pub-cache/bin"
 
-# Android SDK
-export ANDROID_HOME="$HOME/Library/Android/sdk"
-export PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools"
+# Android SDK (installed via Android Studio)
+if [[ -d "$HOME/Library/Android/sdk" ]]; then
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+  export PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools"
+fi
 
 # Dart CLI completion
 [[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ]] && source "$HOME/.dart-cli-completion/zsh-config.zsh"
