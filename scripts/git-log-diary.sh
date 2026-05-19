@@ -1,76 +1,57 @@
 #!/usr/bin/env bash
+# Convert the current repo's git log into a markdown diary, one file per
+# year, grouped by month. Filters out merge/typo/lint/format commits.
+#
+# Usage: run from inside any git repo. Output goes to ./diary/<year>.md.
 
 set -euo pipefail
 
 OUTPUT_DIR="diary"
-TMP_FILE="$(mktemp)"
-
-# Patterns to exclude (case-insensitive)
-EXCLUDE_REGEX="merge|typo|lint|format"
+EXCLUDE_REGEX='merge|typo|lint|format'
 
 mkdir -p "$OUTPUT_DIR"
 
 echo "Extracting git history..."
 
-git log --reverse \
-  --no-merges \
-  --date=short \
-  --pretty=format:"%ad|||%an|||%s|||%b<<<END>>>" \
-  > "$TMP_FILE"
-
 current_year=""
 current_month=""
 output_file=""
 
-echo "Building diary..."
+# Stream commit SHAs and fetch each commit's fields with `git show`. Avoids
+# fragile multi-character delimiter parsing on BSD tools (the previous
+# implementation relied on gawk-only RS semantics).
+git log --reverse --no-merges --pretty=format:'%H' | while IFS= read -r sha; do
+  date=$(git show -s --format=%cd --date=short "$sha")
+  author=$(git show -s --format=%an "$sha")
+  subject=$(git show -s --format=%s "$sha")
+  body=$(git show -s --format=%b "$sha")
 
-while IFS= read -r entry; do
-  # Split fields
-  date=$(echo "$entry" | cut -d '|' -f1)
-  author=$(echo "$entry" | cut -d '|' -f4)
-  subject=$(echo "$entry" | cut -d '|' -f7)
-  body=$(echo "$entry" | cut -d '|' -f10)
-
-  # Filter noise
-  full_msg="$subject $body"
-  if echo "$full_msg" | grep -Eiq "$EXCLUDE_REGEX"; then
+  if printf '%s\n%s\n' "$subject" "$body" | grep -Eiq "$EXCLUDE_REGEX"; then
     continue
   fi
 
   year="${date:0:4}"
   month="${date:0:7}"
 
-  # Create new file per year
   if [[ "$year" != "$current_year" ]]; then
     current_year="$year"
     output_file="$OUTPUT_DIR/$year.md"
-    echo "# Developer Diary — $year" > "$output_file"
-    echo "" >> "$output_file"
+    printf '# Developer Diary — %s\n\n' "$year" > "$output_file"
     current_month=""
   fi
 
-  # Add month section
   if [[ "$month" != "$current_month" ]]; then
     current_month="$month"
-    echo "## $month" >> "$output_file"
-    echo "" >> "$output_file"
+    printf '## %s\n\n' "$month" >> "$output_file"
   fi
 
-  # Write entry
   {
-    echo "### $subject"
-    echo ""
-    echo "- **Author:** $author"
-    echo "- **Date:** $date"
-    echo ""
-    [[ -n "$body" ]] && echo "$body"
-    echo ""
-    echo "---"
-    echo ""
+    printf '### %s\n\n' "$subject"
+    printf -- '- **Author:** %s\n' "$author"
+    printf -- '- **Date:** %s\n\n' "$date"
+    [[ -n "$body" ]] && printf '%s\n\n' "$body"
+    printf -- '---\n\n'
   } >> "$output_file"
-
-done < <(awk -v RS="<<<END>>>" '{print}' "$TMP_FILE")
-
-rm "$TMP_FILE"
+done
 
 echo "Done. Diary saved in ./$OUTPUT_DIR/"
