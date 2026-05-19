@@ -13,7 +13,7 @@ brew install chezmoi
 chezmoi init --apply git@github.com:dimitri-kandassamy/dotfiles.git
 ```
 
-This clones the repo, applies config files to `$HOME`, and runs `run_once_install.sh` which installs all Homebrew packages and applies macOS system preferences.
+This clones the repo, applies config files to `$HOME`, and runs the install script which installs all Homebrew packages and applies macOS system preferences. The script re-runs automatically whenever the `Brewfile` changes.
 
 ## What's included
 
@@ -62,8 +62,7 @@ dotfiles/
 │   ├── sheldon/plugins.toml   # → ~/.config/sheldon/plugins.toml
 │   └── mise/config.toml       # → ~/.config/mise/config.toml
 ├── Brewfile                    # Homebrew bundle manifest
-├── bootstrap.sh                # chezmoi init wrapper (entry point)
-├── run_once_install.sh         # runs once on first chezmoi apply
+├── run_onchange_install.sh.tmpl # installs brew packages + applies macOS prefs (re-runs on Brewfile change)
 └── scripts/
     └── git-log-diary.sh        # convert git log to a markdown diary
 ```
