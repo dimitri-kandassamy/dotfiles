@@ -1,0 +1,7 @@
+# Files kept in the repo but not applied to $HOME
+Brewfile
+README.md
+LICENSE
+.gitignore
+scripts/
+run_once_install.sh
