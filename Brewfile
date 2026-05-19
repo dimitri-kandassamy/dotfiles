@@ -1,8 +1,6 @@
 # taps
 tap "azure/functions"
-tap "dart-lang/dart"
 tap "hashicorp/tap"
-tap "ngrok/ngrok"
 
 # version management — replaces nvm + pyenv
 brew "mise"
