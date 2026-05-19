@@ -1,3 +1,12 @@
+{{- $email := promptStringOnce . "email" "Git email" "dimitri.kandassamy@gmail.com" -}}
+{{- $name := promptStringOnce . "name" "Git name" "Dimitri Kandassamy" -}}
+{{- $gpgSigningKey := promptStringOnce . "gpgSigningKey" "GPG signing key ID (empty disables commit signing)" "" -}}
+{{- $opGpgRef := promptStringOnce . "opGpgRef" "1Password ref for GPG private key, e.g. op://Private/GPG/private_key (empty skips import)" "" -}}
+{{- $opSshRef := promptStringOnce . "opSshRef" "1Password ref for SSH private key, e.g. op://Private/SSH/private_key (empty skips import)" "" -}}
+
 [data]
-    name = "Dimitri Kandassamy"
-    email = "dimitri.kandassamy@gmail.com"
+    name = {{ $name | quote }}
+    email = {{ $email | quote }}
+    gpgSigningKey = {{ $gpgSigningKey | quote }}
+    opGpgRef = {{ $opGpgRef | quote }}
+    opSshRef = {{ $opSshRef | quote }}
