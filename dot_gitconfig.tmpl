@@ -21,7 +21,9 @@
     autocorrect = prompt
 [commit]
     verbose = true
+{{- if .gpgSigningKey }}
     gpgsign = true
+{{- end }}
 [rerere]
     enabled = true
     autoupdate = true
@@ -41,7 +43,9 @@
 [user]
     email = {{ .email }}
     name = {{ .name }}
-	signingkey = B4DEDBF7A96DFFF8
+{{- if .gpgSigningKey }}
+    signingkey = {{ .gpgSigningKey }}
+{{- end }}
 [github]
     user = dimitri-kandassamy
 [init]

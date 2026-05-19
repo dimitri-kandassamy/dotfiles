@@ -61,21 +61,28 @@ dotfiles/
 ├── dot_config/
 │   ├── sheldon/plugins.toml   # → ~/.config/sheldon/plugins.toml
 │   └── mise/config.toml       # → ~/.config/mise/config.toml
-├── Brewfile                    # Homebrew bundle manifest
-├── run_onchange_install.sh.tmpl # installs brew packages + applies macOS prefs (re-runs on Brewfile change)
+├── Brewfile                                       # Homebrew bundle manifest
+├── run_onchange_before_install.sh.tmpl            # installs brew packages + applies macOS prefs
+├── run_onchange_after_import-secrets.sh.tmpl      # fetches GPG + SSH keys from 1Password
 └── scripts/
-    └── git-log-diary.sh        # convert git log to a markdown diary
+    └── git-log-diary.sh                            # convert git log to a markdown diary
 ```
+
+## Secrets (GPG + SSH)
+
+On first `chezmoi init` you'll be prompted for:
+
+- `gpgSigningKey` — your GPG key ID (e.g. `B4DEDBF7A96DFFF8`). Empty disables commit signing.
+- `opGpgRef` — 1Password reference to the GPG private key (e.g. `op://Private/GPG/private_key`). Empty skips import.
+- `opSshRef` — 1Password reference to the SSH private key (e.g. `op://Private/SSH/private_key`). Empty skips import.
+
+Once `1password-cli` is installed and you've enabled CLI integration in the 1Password app (Settings → Developer), re-running `chezmoi apply` fetches both keys into `~/.gnupg` and `~/.ssh/id_ed25519`.
 
 ## Manual steps
 
-A few things still require manual setup after `chezmoi apply`:
-
 - **Flutter SDK** — download from [flutter.dev](https://flutter.dev) and place at `~/DevTools/flutter/`
 - **Android SDK** — install via Android Studio; SDK path is expected at `~/Library/Android/sdk`
-- **GPG key** — import your private key: `gpg --import private.key`
-- **SSH keys** — generate or restore: `ssh-keygen -t ed25519 -C "your@email.com"`
-- **1Password** — sign in to unlock secrets referenced in templates
+- **1Password** — install the desktop app and sign in (the cask is in `Brewfile`); enable CLI integration in Settings → Developer.
 
 ## Adding a new machine config
 
