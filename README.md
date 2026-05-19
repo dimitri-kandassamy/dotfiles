@@ -57,6 +57,7 @@ dotfiles/
 ├── dot_zshrc                   # → ~/.zshrc
 ├── dot_aliases                 # → ~/.aliases
 ├── dot_gitconfig               # → ~/.gitconfig
+├── dot_p10k.zsh                # → ~/.p10k.zsh (Powerlevel10k prompt config)
 ├── dot_macos                   # → ~/.macos (macOS system preferences script)
 ├── dot_config/
 │   ├── sheldon/plugins.toml   # → ~/.config/sheldon/plugins.toml
