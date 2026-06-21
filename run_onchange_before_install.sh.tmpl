@@ -14,6 +14,6 @@ fi
 BREW_PREFIX=$([[ "$(uname -m)" == "arm64" ]] && echo /opt/homebrew || echo /usr/local)
 eval "$($BREW_PREFIX/bin/brew shellenv)"
 
-brew bundle --no-lock --file="{{ .chezmoi.sourceDir }}/Brewfile"
+brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
 
 bash "{{ .chezmoi.sourceDir }}/dot_macos"
