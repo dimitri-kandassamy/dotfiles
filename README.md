@@ -6,14 +6,25 @@ Personal macOS dotfiles managed with [chezmoi](https://www.chezmoi.io).
 
 ## Fresh install
 
-**Prerequisite:** [Homebrew](https://brew.sh)
+Order matters: the repo is cloned over **SSH** and 1Password serves the key, so 1Password
+must be ready *before* chezmoi runs.
 
-```bash
-brew install chezmoi
-chezmoi init --apply git@github.com:dimitri-kandassamy/dotfiles.git
-```
+1. **Sign into your Apple ID** (System Settings) so the Mac App Store can install `mas` apps later.
+2. **Install [1Password](https://1password.com/downloads/mac/)** → sign in → Settings →
+   Developer → enable **SSH agent** and **CLI integration**. Make sure your SSH key exists as
+   an *SSH Key* item and is registered on GitHub for both *Authentication* and *Signing*
+   (see [Keys & commit signing](#keys--commit-signing-1password-ssh-agent)).
+3. **Install [Homebrew](https://brew.sh)**, then chezmoi:
+   ```bash
+   brew install chezmoi
+   chezmoi init --apply git@github.com:dimitri-kandassamy/dotfiles.git
+   ```
+   You'll be prompted for name, email, and `sshSigningKey`. chezmoi applies the config files,
+   then runs the install script: `brew bundle` installs every package and `dot_macos` applies
+   the system preferences (expect a `sudo` password prompt).
+4. Open a new shell — Starship, mise, zoxide, and fzf are live.
 
-This clones the repo, applies config files to `$HOME`, and runs the install script which installs all Homebrew packages and applies macOS system preferences. The script re-runs automatically whenever the `Brewfile` changes.
+The install script re-runs automatically whenever the `Brewfile` changes.
 
 ## What's included
 
@@ -23,7 +34,7 @@ This clones the repo, applies config files to `$HOME`, and runs the install scri
 - Plugins: `zsh-autosuggestions`, `fast-syntax-highlighting`
 
 ### Version management
-- **[mise](https://mise.jdx.dev)** — manages Node, Python, Go, and Terraform versions via `.mise.toml` per project, replacing `nvm` and `pyenv`
+- **[mise](https://mise.jdx.dev)** — manages Node, Python, and Go versions via `.mise.toml` per project, replacing `nvm` and `pyenv`
 - **[uv](https://docs.astral.sh/uv)** — Python package and virtualenv management
 
 ### Modern CLI
@@ -43,7 +54,7 @@ This clones the repo, applies config files to `$HOME`, and runs the install scri
 `k9s` · `kubectx` · `kubens` · `stern` · `helm` · `kind`
 
 ### Cloud / infrastructure
-`azure-cli` · `azure-functions-core-tools@4` · `terraform` (version-managed via mise)
+`azure-cli` · `azure-functions-core-tools@4` · `terraform` (via `hashicorp` tap) · `dotnet`
 
 ### Mobile / Android
 `apktool` · `jadx` · Flutter (manual, see below) · Android SDK (manual, see below)
@@ -90,13 +101,15 @@ Setup (one-time, in the 1Password desktop app):
 `~/.zshrc` points `SSH_AUTH_SOCK` at the 1Password agent socket; `~/.gitconfig` points
 `gpg.ssh.program` at 1Password's `op-ssh-sign` binary.
 
-## Manual steps
+## Manual steps (after the install)
 
-- **1Password** — sign in (the cask is in `Brewfile`); enable SSH agent + CLI integration in Settings → Developer. Do this *before* `chezmoi init` so git-over-SSH works.
-- **Mac App Store** — sign in so `mas` can install App Store apps (Xcode, Numbers, iMovie). IDs live in the `Brewfile`; capture them with `mas list`.
+1Password, the Mac App Store, and Homebrew are covered in [Fresh install](#fresh-install).
+What remains:
+
 - **Flutter SDK** — download from [flutter.dev](https://flutter.dev) and place at `~/DevTools/flutter/`.
 - **Android SDK** — `android-studio` is in the `Brewfile`; open it once to download the SDK to `~/Library/Android/sdk`.
 - **eTax.zug** — Swiss tax software, not on Homebrew; reinstall by hand when needed.
+- **VS Code** — sign in and enable Settings Sync to restore extensions and settings.
 
 ## Day-to-day workflow
 
