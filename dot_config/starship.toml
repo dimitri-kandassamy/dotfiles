@@ -1,0 +1,51 @@
+# Starship prompt — https://starship.rs
+# Minimal config; Starship ships sane defaults, so this only tweaks a few things.
+
+# Two-line prompt: info on top, input arrow below.
+add_newline = true
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$nodejs$python$golang$rust$java$dotnet\
+$kubernetes\
+$cmd_duration\
+$line_break\
+$character"""
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "bold cyan"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+
+[git_status]
+style = "bold yellow"
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration]($style) "
+style = "bold yellow"
+
+# Language versions only show inside relevant projects (Starship default behaviour).
+[nodejs]
+symbol = " "
+[python]
+symbol = " "
+[golang]
+symbol = " "
+
+# Kubernetes context is opt-in; surface it since you work with k8s.
+[kubernetes]
+disabled = false
+symbol = "☸ "
+format = 'on [$symbol$context(\($namespace\))]($style) '
+style = "bold blue"
