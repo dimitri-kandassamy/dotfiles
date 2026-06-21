@@ -8,6 +8,7 @@ brew "uv"
 
 # shell
 brew "sheldon"
+brew "starship"
 
 # azure
 brew "azure-cli"
@@ -20,6 +21,9 @@ brew "kind"
 brew "k9s"
 brew "kubectx"
 brew "stern"
+
+# .NET (C# dev + Azure Functions)
+brew "dotnet"
 
 # core dev tools
 brew "ffmpeg"
@@ -51,29 +55,43 @@ brew "apktool"
 brew "jadx"
 
 # misc dev
-brew "gemini-cli"
 brew "ocrmypdf"
 brew "typst"
 
-# 1password cli (chezmoi secret integration)
+# mac app store cli
+brew "mas"
+
+# 1password cli (chezmoi secret integration + SSH agent)
 brew "1password-cli"
 
 # apps
 cask "1password"
+cask "affinity"
+cask "android-studio"
 cask "audacity"
 cask "brave-browser"
 cask "calibre"
+cask "claude"
+cask "claude-code"
 cask "discord"
 cask "docker-desktop"
+cask "figma"
 cask "firefox"
 cask "google-chrome"
-cask "gpg-suite"
 cask "iterm2"
+cask "microsoft-teams"
 cask "ngrok"
 cask "notion"
 cask "obs"
+cask "ollama"
 cask "slack"
 cask "spotify"
 cask "visual-studio-code"
 cask "vlc"
 cask "zoom"
+
+# mac app store apps (IDs from `mas list`)
+mas "Xcode", id: 497799835
+mas "Numbers", id: 409203825
+mas "iMovie", id: 408981434
+# dropped: Evernote (406056744) — no longer used

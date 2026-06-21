@@ -1,8 +1,3 @@
-# Enable Powerlevel10k instant prompt — must stay near the top
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 # Sheldon plugin manager (replaces Oh My Zsh)
 command -v sheldon &>/dev/null && eval "$(sheldon source)"
 
@@ -18,8 +13,9 @@ command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 # Aliases
 source "$HOME/.aliases"
 
-# Powerlevel10k config
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# 1Password SSH agent — serves keys from the vault; no private keys on disk.
+# Used for git/ssh authentication and SSH commit signing.
+export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
 # Go — user-installed binaries (go install …)
 export GOPATH="$HOME/go"
@@ -45,3 +41,6 @@ if command -v terraform &>/dev/null; then
   autoload -U +X bashcompinit && bashcompinit
   complete -o nospace -C "$(which terraform)" terraform
 fi
+
+# Starship prompt (replaces Powerlevel10k) — keep last so it wraps the final shell state
+command -v starship &>/dev/null && eval "$(starship init zsh)"

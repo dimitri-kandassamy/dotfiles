@@ -19,7 +19,7 @@ This clones the repo, applies config files to `$HOME`, and runs the install scri
 
 ### Shell
 - **zsh** with [sheldon](https://sheldon.cli.rs) as plugin manager (replaces Oh My Zsh)
-- [Powerlevel10k](https://github.com/romkatv/powerlevel10k) prompt with instant prompt
+- [Starship](https://starship.rs) prompt (config at `~/.config/starship.toml`)
 - Plugins: `zsh-autosuggestions`, `fast-syntax-highlighting`
 
 ### Version management
@@ -52,38 +52,51 @@ This clones the repo, applies config files to `$HOME`, and runs the install scri
 
 ```
 dotfiles/
-├── .chezmoi.toml.tmpl          # machine-level config (name, email)
+├── .chezmoi.toml.tmpl          # machine-level config (name, email, ssh signing key)
 ├── .chezmoiignore              # files not applied to $HOME
 ├── dot_zshrc                   # → ~/.zshrc
 ├── dot_aliases                 # → ~/.aliases
-├── dot_gitconfig               # → ~/.gitconfig
-├── dot_p10k.zsh                # → ~/.p10k.zsh (Powerlevel10k prompt config)
+├── dot_gitconfig.tmpl          # → ~/.gitconfig (SSH commit signing via 1Password)
 ├── dot_macos                   # → ~/.macos (macOS system preferences script)
 ├── dot_config/
+│   ├── starship.toml          # → ~/.config/starship.toml (prompt config)
+│   ├── git/allowed_signers.tmpl # → ~/.config/git/allowed_signers (verify SSH signatures)
 │   ├── sheldon/plugins.toml   # → ~/.config/sheldon/plugins.toml
 │   └── mise/config.toml       # → ~/.config/mise/config.toml
 ├── Brewfile                                       # Homebrew bundle manifest
 ├── run_onchange_before_install.sh.tmpl            # installs brew packages + applies macOS prefs
-├── run_onchange_after_import-secrets.sh.tmpl      # fetches GPG + SSH keys from 1Password
 └── scripts/
     └── git-log-diary.sh                            # convert git log to a markdown diary
 ```
 
-## Secrets (GPG + SSH)
+## Keys & commit signing (1Password SSH agent)
+
+SSH keys are served by the [1Password SSH agent](https://developer.1password.com/docs/ssh/) —
+they live in your vault and never touch disk. The same key is used for git/ssh
+authentication **and** commit signing (git 2.34+ signs with SSH, no GPG needed).
 
 On first `chezmoi init` you'll be prompted for:
 
-- `gpgSigningKey` — your GPG key ID (e.g. `B4DEDBF7A96DFFF8`). Empty disables commit signing.
-- `opGpgRef` — 1Password reference to the GPG private key (e.g. `op://Private/GPG/private_key`). Empty skips import.
-- `opSshRef` — 1Password reference to the SSH private key (e.g. `op://Private/SSH/private_key`). Empty skips import.
+- `sshSigningKey` — your SSH **public** key (e.g. `ssh-ed25519 AAAA…`). Empty disables
+  commit signing. This is written to `~/.gitconfig` and `~/.config/git/allowed_signers`.
 
-Once `1password-cli` is installed and you've enabled CLI integration in the 1Password app (Settings → Developer), re-running `chezmoi apply` fetches both keys into `~/.gnupg` and `~/.ssh/id_ed25519`.
+Setup (one-time, in the 1Password desktop app):
+
+1. Settings → Developer → enable **SSH agent** and **CLI integration**.
+2. Store your SSH key as an **SSH Key** item (import the existing one if needed).
+3. Open the item → **Configure Commit Signing**, and copy the public key into `sshSigningKey`.
+4. Register the key on GitHub for **both** "Authentication" and "Signing".
+
+`~/.zshrc` points `SSH_AUTH_SOCK` at the 1Password agent socket; `~/.gitconfig` points
+`gpg.ssh.program` at 1Password's `op-ssh-sign` binary.
 
 ## Manual steps
 
-- **Flutter SDK** — download from [flutter.dev](https://flutter.dev) and place at `~/DevTools/flutter/`
-- **Android SDK** — install via Android Studio; SDK path is expected at `~/Library/Android/sdk`
-- **1Password** — install the desktop app and sign in (the cask is in `Brewfile`); enable CLI integration in Settings → Developer.
+- **1Password** — sign in (the cask is in `Brewfile`); enable SSH agent + CLI integration in Settings → Developer. Do this *before* `chezmoi init` so git-over-SSH works.
+- **Mac App Store** — sign in so `mas` can install App Store apps (Xcode, Numbers, iMovie). IDs live in the `Brewfile`; capture them with `mas list`.
+- **Flutter SDK** — download from [flutter.dev](https://flutter.dev) and place at `~/DevTools/flutter/`.
+- **Android SDK** — `android-studio` is in the `Brewfile`; open it once to download the SDK to `~/Library/Android/sdk`.
+- **eTax.zug** — Swiss tax software, not on Homebrew; reinstall by hand when needed.
 
 ## Day-to-day workflow
 
