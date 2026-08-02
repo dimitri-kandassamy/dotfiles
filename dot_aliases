@@ -15,5 +15,3 @@ alias lg='lazygit'
 
 # kubernetes shortcuts
 alias k='kubectl'
-alias kx='kubectx'
-alias kns='kubens'

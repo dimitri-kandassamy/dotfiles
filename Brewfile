@@ -19,11 +19,7 @@ brew "hashicorp/tap/terraform"
 # kubectl itself — previously only present because Docker Desktop bundled it,
 # which every other tool here silently depended on
 brew "kubernetes-cli"
-brew "helm"
-brew "kind"
 brew "k9s"
-brew "kubectx"
-brew "stern"
 
 # containers — colima replaces Docker Desktop (no licence, no GUI daemon).
 # `colima start` boots the VM; the docker CLI and its plugins are separate
