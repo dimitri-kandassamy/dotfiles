@@ -32,3 +32,14 @@ if brew trust --help &>/dev/null; then
 fi
 
 brew bundle --file="$BREWFILE"
+
+# Docker CLI plugins. Docker Desktop used to supply compose and buildx; from
+# Homebrew they land outside the directory the docker CLI searches, so link
+# them into ~/.docker/cli-plugins. Idempotent.
+plugin_dir="$(brew --prefix)/lib/docker/cli-plugins"
+if [[ -d "$plugin_dir" ]]; then
+  mkdir -p "$HOME/.docker/cli-plugins"
+  for plugin in "$plugin_dir"/*; do
+    [[ -e "$plugin" ]] && ln -sfn "$plugin" "$HOME/.docker/cli-plugins/$(basename "$plugin")"
+  done
+fi
