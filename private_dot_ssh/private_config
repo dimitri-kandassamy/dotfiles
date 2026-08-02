@@ -1,0 +1,6 @@
+# Route all SSH key lookups through the 1Password agent. Setting this here
+# rather than only exporting SSH_AUTH_SOCK in the shell means GUI apps and
+# non-interactive shells (VS Code's built-in git, LaunchAgents, cron) get the
+# agent too — they never read ~/.zshrc.
+Host *
+  IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"

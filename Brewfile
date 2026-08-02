@@ -61,11 +61,10 @@ brew "typst"
 # mac app store cli
 brew "mas"
 
-# 1password cli (chezmoi secret integration + SSH agent)
-brew "1password-cli"
-
 # apps
 cask "1password"
+# 1password cli (chezmoi secret integration + SSH agent) — cask, not a formula
+cask "1password-cli"
 cask "affinity"
 cask "android-studio"
 cask "audacity"

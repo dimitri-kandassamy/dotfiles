@@ -19,12 +19,17 @@ must be ready *before* chezmoi runs.
    brew install chezmoi
    chezmoi init --apply git@github.com:dimitri-kandassamy/dotfiles.git
    ```
-   You'll be prompted for name, email, and `sshSigningKey`. chezmoi applies the config files,
-   then runs the install script: `brew bundle` installs every package and `dot_macos` applies
-   the system preferences (expect a `sudo` password prompt).
+   Homebrew's installer prints two `eval` lines to add `brew` to your `PATH` — run them, or
+   just open a new terminal after installing (`~/.zprofile` handles it from then on).
+
+   You'll be prompted for name, email, and `sshSigningKey`. chezmoi writes the config files
+   first, then runs two scripts in order: `brew bundle` installs every package, and `~/.macos`
+   applies the system preferences (expect a `sudo` password prompt, and Finder/Dock/Chrome
+   restarting at the end).
 4. Open a new shell — Starship, mise, zoxide, and fzf are live.
 
-The install script re-runs automatically whenever the `Brewfile` changes.
+`10-brew.sh` re-runs whenever the `Brewfile` changes; `20-macos.sh` re-runs only when
+`dot_macos` itself changes, so adding a package doesn't reapply every system default.
 
 ## What's included
 
@@ -65,17 +70,22 @@ The install script re-runs automatically whenever the `Brewfile` changes.
 dotfiles/
 ├── .chezmoi.toml.tmpl          # machine-level config (name, email, ssh signing key)
 ├── .chezmoiignore              # files not applied to $HOME
+├── dot_zprofile                # → ~/.zprofile (Homebrew PATH, 1Password agent socket)
 ├── dot_zshrc                   # → ~/.zshrc
 ├── dot_aliases                 # → ~/.aliases
 ├── dot_gitconfig.tmpl          # → ~/.gitconfig (SSH commit signing via 1Password)
+├── dot_gitignore               # → ~/.gitignore (global excludes)
 ├── dot_macos                   # → ~/.macos (macOS system preferences script)
+├── private_dot_ssh/
+│   └── private_config          # → ~/.ssh/config (1Password agent for GUI apps too)
 ├── dot_config/
 │   ├── starship.toml          # → ~/.config/starship.toml (prompt config)
 │   ├── git/allowed_signers.tmpl # → ~/.config/git/allowed_signers (verify SSH signatures)
 │   ├── sheldon/plugins.toml   # → ~/.config/sheldon/plugins.toml
 │   └── mise/config.toml       # → ~/.config/mise/config.toml
 ├── Brewfile                                       # Homebrew bundle manifest
-├── run_onchange_before_install.sh.tmpl            # installs brew packages + applies macOS prefs
+├── run_onchange_after_10-brew.sh.tmpl             # brew bundle (re-runs on Brewfile change)
+├── run_onchange_after_20-macos.sh.tmpl            # runs ~/.macos (re-runs on dot_macos change)
 └── scripts/
     └── git-log-diary.sh                            # convert git log to a markdown diary
 ```
@@ -98,8 +108,13 @@ Setup (one-time, in the 1Password desktop app):
 3. Open the item → **Configure Commit Signing**, and copy the public key into `sshSigningKey`.
 4. Register the key on GitHub for **both** "Authentication" and "Signing".
 
-`~/.zshrc` points `SSH_AUTH_SOCK` at the 1Password agent socket; `~/.gitconfig` points
-`gpg.ssh.program` at 1Password's `op-ssh-sign` binary.
+Wiring, once applied:
+
+- `~/.ssh/config` sets `IdentityAgent` to the 1Password socket. This is what makes the agent
+  work for GUI apps and non-interactive shells — VS Code's built-in git, LaunchAgents, cron —
+  none of which read `~/.zshrc`.
+- `~/.zprofile` also exports `SSH_AUTH_SOCK`, for tools that read it directly (`ssh-add -l`).
+- `~/.gitconfig` points `gpg.ssh.program` at 1Password's `op-ssh-sign` binary.
 
 ## Manual steps (after the install)
 

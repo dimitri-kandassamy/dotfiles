@@ -1,0 +1,26 @@
+# Global gitignore — referenced by core.excludesfile in ~/.gitconfig.
+# Only for things that are never worth committing in *any* repo; per-project
+# noise belongs in that project's own .gitignore.
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.un~
+Session.vim
+.netrwhist
+
+# Local history / scratch
+.history/
+*.ignored/
+*.ignored.*
+
+# Direnv / tool-local state
+.direnv/

@@ -1,3 +1,23 @@
+# History — Oh My Zsh used to configure this. Without it you fall back to
+# macOS /etc/zshrc, which saves only 1000 lines: far too few now that fzf's
+# Ctrl+R is the main way to reach it.
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt EXTENDED_HISTORY       # record a timestamp per command
+setopt SHARE_HISTORY          # share history across concurrent shells
+setopt HIST_IGNORE_ALL_DUPS   # drop older duplicates of a repeated command
+setopt HIST_IGNORE_SPACE      # skip commands typed with a leading space
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY            # expand !! onto the line instead of running it
+
+# Completion system — Oh My Zsh used to run this too. It must come before
+# anything that calls compdef (sheldon plugins, bashcompinit below), and after
+# ~/.zprofile has put Homebrew's site-functions on FPATH.
+autoload -Uz compinit
+mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}"
+compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zcompdump"
+
 # Sheldon plugin manager (replaces Oh My Zsh)
 command -v sheldon &>/dev/null && eval "$(sheldon source)"
 
@@ -12,10 +32,6 @@ command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 
 # Aliases
 source "$HOME/.aliases"
-
-# 1Password SSH agent — serves keys from the vault; no private keys on disk.
-# Used for git/ssh authentication and SSH commit signing.
-export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
 # Go — user-installed binaries (go install …)
 export GOPATH="$HOME/go"
@@ -36,7 +52,7 @@ fi
 # Dart CLI completion
 [[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ]] && source "$HOME/.dart-cli-completion/zsh-config.zsh"
 
-# Terraform shell completion
+# Terraform shell completion (bashcompinit needs compinit to have run first)
 if command -v terraform &>/dev/null; then
   autoload -U +X bashcompinit && bashcompinit
   complete -o nospace -C "$(which terraform)" terraform
