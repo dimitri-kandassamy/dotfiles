@@ -25,6 +25,14 @@ brew "k9s"
 brew "kubectx"
 brew "stern"
 
+# containers — colima replaces Docker Desktop (no licence, no GUI daemon).
+# `colima start` boots the VM; the docker CLI and its plugins are separate
+# formulae because only the Desktop app used to bundle them.
+brew "colima"
+brew "docker"
+brew "docker-compose"
+brew "docker-buildx"
+
 # .NET (C# dev + Azure Functions)
 brew "dotnet"
 
@@ -76,7 +84,6 @@ cask "calibre"
 cask "claude"
 cask "claude-code"
 cask "discord"
-cask "docker-desktop"
 cask "figma"
 cask "firefox"
 cask "google-chrome"

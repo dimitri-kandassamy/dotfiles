@@ -64,6 +64,12 @@ must be ready *before* chezmoi runs.
 ### Cloud / infrastructure
 `azure-cli` · `azure-functions-core-tools@4` · `terraform` (via `hashicorp` tap) · `dotnet`
 
+### Containers
+[colima](https://github.com/abiosoft/colima) instead of Docker Desktop — no licence and no
+GUI daemon. The `docker` CLI, `docker-compose` and `docker-buildx` are separate formulae
+(only Desktop bundled them); `10-brew.sh` links the plugins into `~/.docker/cli-plugins`.
+Start the VM with `colima start`, or `brew services start colima` to have it start at login.
+
 ### Mobile / Android
 Flutter (manual, see below) · Android SDK (manual, see below)
 
