@@ -59,7 +59,8 @@ must be ready *before* chezmoi runs.
 | `yq` | — | YAML processor (pairs with `jq`) |
 
 ### Kubernetes
-`k9s` · `kubectx` · `kubens` · `stern` · `helm` · `kind`
+`kubectl` · `k9s` — enough to talk to a remote cluster and look around. No local-cluster
+tooling: `kind`, `helm`, `kubectx` and `stern` were dropped as unused.
 
 ### Cloud / infrastructure
 `azure-cli` · `azure-functions-core-tools@4` · `terraform` (via `hashicorp` tap) · `dotnet`
