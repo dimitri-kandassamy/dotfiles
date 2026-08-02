@@ -37,6 +37,9 @@ must be ready *before* chezmoi runs.
 - **zsh** with [sheldon](https://sheldon.cli.rs) as plugin manager (replaces Oh My Zsh)
 - [Starship](https://starship.rs) prompt (config at `~/.config/starship.toml`)
 - Plugins: `zsh-autosuggestions`, `fast-syntax-highlighting`
+- **iTerm2**, settings included (see [Terminal](#terminal)). Starship's symbols and
+  `eza --icons` need a Nerd Font, so `font-meslo-lg-nerd-font` is in the `Brewfile`.
+- `$EDITOR` / `git core.editor` are `code --wait`
 
 ### Version management
 - **[mise](https://mise.jdx.dev)** — manages Node, Python, and Go versions via `.mise.toml` per project, replacing `nvm` and `pyenv`
@@ -62,7 +65,19 @@ must be ready *before* chezmoi runs.
 `azure-cli` · `azure-functions-core-tools@4` · `terraform` (via `hashicorp` tap) · `dotnet`
 
 ### Mobile / Android
-`apktool` · `jadx` · Flutter (manual, see below) · Android SDK (manual, see below)
+Flutter (manual, see below) · Android SDK (manual, see below)
+
+### Terminal
+iTerm2 loads its settings from `~/.config/iterm2/` instead of its own prefs domain, so
+profiles, fonts and keybindings are version-controlled. `dot_macos` flips the two
+`defaults` keys that point it there. After changing something in iTerm2's UI, capture it:
+
+```bash
+chezmoi re-add ~/.config/iterm2/com.googlecode.iterm2.plist
+```
+
+Window positions and other volatile state (`NoSync*`, `NSWindow Frame*`, Sparkle keys)
+are deliberately excluded from the tracked plist.
 
 ## Repository structure
 
@@ -70,7 +85,7 @@ must be ready *before* chezmoi runs.
 dotfiles/
 ├── .chezmoi.toml.tmpl          # machine-level config (name, email, ssh signing key)
 ├── .chezmoiignore              # files not applied to $HOME
-├── dot_zprofile                # → ~/.zprofile (Homebrew PATH, 1Password agent socket)
+├── dot_zprofile                # → ~/.zprofile (Homebrew PATH, $EDITOR, 1Password socket)
 ├── dot_zshrc                   # → ~/.zshrc
 ├── dot_aliases                 # → ~/.aliases
 ├── dot_gitconfig.tmpl          # → ~/.gitconfig (SSH commit signing via 1Password)
@@ -82,7 +97,8 @@ dotfiles/
 │   ├── starship.toml          # → ~/.config/starship.toml (prompt config)
 │   ├── git/allowed_signers.tmpl # → ~/.config/git/allowed_signers (verify SSH signatures)
 │   ├── sheldon/plugins.toml   # → ~/.config/sheldon/plugins.toml
-│   └── mise/config.toml       # → ~/.config/mise/config.toml
+│   ├── mise/config.toml       # → ~/.config/mise/config.toml
+│   └── iterm2/com.googlecode.iterm2.plist # → ~/.config/iterm2/ (iTerm2 settings)
 ├── Brewfile                                       # Homebrew bundle manifest
 ├── run_onchange_after_10-brew.sh.tmpl             # brew bundle (re-runs on Brewfile change)
 ├── run_onchange_after_20-macos.sh.tmpl            # runs ~/.macos (re-runs on dot_macos change)
@@ -125,6 +141,8 @@ What remains:
 - **Android SDK** — `android-studio` is in the `Brewfile`; open it once to download the SDK to `~/Library/Android/sdk`.
 - **eTax.zug** — Swiss tax software, not on Homebrew; reinstall by hand when needed.
 - **VS Code** — sign in and enable Settings Sync to restore extensions and settings.
+- **iTerm2** — settings are restored automatically, but iTerm2 only re-reads them on
+  launch. If it was already running during the install, quit and reopen it once.
 
 ## Day-to-day workflow
 
