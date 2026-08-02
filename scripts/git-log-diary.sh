@@ -24,8 +24,16 @@ output_file=""
 
 # One `git log` pass, NUL-separated records. Author date (%ad), not committer
 # date — a diary should reflect when the work was done, not when it was rebased.
+#
+# Sorted by date rather than relying on --reverse: author dates are not
+# monotonic in commit order (rebases, cherry-picks, long-lived branches), and
+# the year/month headers below assume they are. Without the sort, revisiting an
+# earlier year truncates the file already written for it. Sorting on %at (unix
+# timestamp) rather than %ad keeps commits made on the same day in chronological
+# order, which a plain date sort would lose.
 while IFS= read -r -d '' record || [[ -n "$record" ]]; do
-  date="${record%%"$US"*}"; rest="${record#*"$US"}"
+  rest="${record#*"$US"}"                    # drop the %at sort key
+  date="${rest%%"$US"*}"; rest="${rest#*"$US"}"
   author="${rest%%"$US"*}"; rest="${rest#*"$US"}"
   subject="${rest%%"$US"*}"
   body="${rest#*"$US"}"
@@ -60,6 +68,7 @@ while IFS= read -r -d '' record || [[ -n "$record" ]]; do
     printf -- '---\n\n'
   } >> "$output_file"
 done < <(git log --reverse --no-merges -z --date=short \
-  --format="%ad${US}%an${US}%s${US}%b")
+  --format="%at${US}%ad${US}%an${US}%s${US}%b" \
+  | LC_ALL=C sort -z -s -t "$US" -k1,1n)
 
 echo "Done. Diary saved in ./$OUTPUT_DIR/"
