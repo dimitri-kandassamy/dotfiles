@@ -7,6 +7,8 @@
 
 set -euo pipefail
 
+BREWFILE="{{ .chezmoi.sourceDir }}/Brewfile"
+
 if ! command -v brew &>/dev/null; then
   echo "Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -19,4 +21,14 @@ for prefix in /opt/homebrew /usr/local; do
   fi
 done
 
-brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
+# Homebrew 6 refuses to load formulae from non-official taps until they are
+# trusted, and the trust list lives in machine-local ~/.homebrew/trust.json —
+# so a fresh machine stalls on `brew bundle` without this. Read the taps out of
+# the Brewfile so the two lists can't drift. Idempotent.
+if brew trust --help &>/dev/null; then
+  while IFS= read -r tap; do
+    brew trust --tap "$tap"
+  done < <(sed -n 's/^tap "\([^"]*\)".*/\1/p' "$BREWFILE")
+fi
+
+brew bundle --file="$BREWFILE"
