@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Installs every package in the Brewfile. Runs *after* the dotfiles are applied,
+# so a package that fails to install can no longer leave $HOME without a shell
+# config. Re-runs whenever the Brewfile changes, via the hash below.
+#
+# Brewfile hash: {{ include "Brewfile" | sha256sum }}
+
+set -euo pipefail
+
+if ! command -v brew &>/dev/null; then
+  echo "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+for prefix in /opt/homebrew /usr/local; do
+  if [[ -x "$prefix/bin/brew" ]]; then
+    eval "$("$prefix/bin/brew" shellenv)"
+    break
+  fi
+done
+
+brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"

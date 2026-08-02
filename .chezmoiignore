@@ -1,6 +1,13 @@
-# Files kept in the repo but not applied to $HOME
+# Files kept in the repo but not applied to $HOME.
+# Patterns match the *target* path, so don't list `.gitignore` here — that
+# would block dot_gitignore → ~/.gitignore. Source files starting with a dot
+# are ignored by chezmoi automatically anyway.
 Brewfile
 README.md
 LICENSE
-.gitignore
 scripts/
+
+{{- if not .sshSigningKey }}
+# No signing key configured, so don't create an empty allowed_signers file
+.config/git/allowed_signers
+{{- end }}

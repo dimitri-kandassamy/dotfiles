@@ -5,9 +5,14 @@
 # Usage: run from inside any git repo. Output goes to ./diary/<year>.md.
 
 set -euo pipefail
+shopt -s nocasematch
 
 OUTPUT_DIR="diary"
 EXCLUDE_REGEX='merge|typo|lint|format'
+
+# Field separator inside a record (ASCII unit separator); records themselves
+# are NUL-separated via `git log -z`, so multi-line bodies survive intact.
+US=$'\x1f'
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -17,16 +22,18 @@ current_year=""
 current_month=""
 output_file=""
 
-# Stream commit SHAs and fetch each commit's fields with `git show`. Avoids
-# fragile multi-character delimiter parsing on BSD tools (the previous
-# implementation relied on gawk-only RS semantics).
-git log --reverse --no-merges --pretty=format:'%H' | while IFS= read -r sha; do
-  date=$(git show -s --format=%cd --date=short "$sha")
-  author=$(git show -s --format=%an "$sha")
-  subject=$(git show -s --format=%s "$sha")
-  body=$(git show -s --format=%b "$sha")
+# One `git log` pass, NUL-separated records. Author date (%ad), not committer
+# date — a diary should reflect when the work was done, not when it was rebased.
+while IFS= read -r -d '' record || [[ -n "$record" ]]; do
+  date="${record%%"$US"*}"; rest="${record#*"$US"}"
+  author="${rest%%"$US"*}"; rest="${rest#*"$US"}"
+  subject="${rest%%"$US"*}"
+  body="${rest#*"$US"}"
 
-  if printf '%s\n%s\n' "$subject" "$body" | grep -Eiq "$EXCLUDE_REGEX"; then
+  # %b keeps the trailing blank lines git pads the body with
+  while [[ "$body" == *$'\n' ]]; do body="${body%$'\n'}"; done
+
+  if [[ "$subject $body" =~ $EXCLUDE_REGEX ]]; then
     continue
   fi
 
@@ -52,6 +59,7 @@ git log --reverse --no-merges --pretty=format:'%H' | while IFS= read -r sha; do
     [[ -n "$body" ]] && printf '%s\n\n' "$body"
     printf -- '---\n\n'
   } >> "$output_file"
-done
+done < <(git log --reverse --no-merges -z --date=short \
+  --format="%ad${US}%an${US}%s${US}%b")
 
 echo "Done. Diary saved in ./$OUTPUT_DIR/"
