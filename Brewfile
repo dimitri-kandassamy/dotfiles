@@ -1,5 +1,4 @@
 # taps
-tap "azure/functions"
 tap "hashicorp/tap"
 
 # version management — replaces nvm + pyenv
@@ -9,10 +8,6 @@ brew "uv"
 # shell
 brew "sheldon"
 brew "starship"
-
-# azure
-brew "azure-cli"
-brew "azure/functions/azure-functions-core-tools@4"
 
 # cloud / infra
 brew "hashicorp/tap/terraform"
