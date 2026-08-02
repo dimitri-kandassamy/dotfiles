@@ -63,7 +63,8 @@ must be ready *before* chezmoi runs.
 tooling: `kind`, `helm`, `kubectx` and `stern` were dropped as unused.
 
 ### Cloud / infrastructure
-`azure-cli` · `azure-functions-core-tools@4` · `terraform` (via `hashicorp` tap) · `dotnet`
+`terraform` (via `hashicorp` tap) · `dotnet` — the Azure CLI and Functions Core Tools were
+dropped as unused; reinstall with `brew install azure-cli` if that work comes back.
 
 ### Containers
 [colima](https://github.com/abiosoft/colima) instead of Docker Desktop — no licence and no
