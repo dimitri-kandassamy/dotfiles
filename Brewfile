@@ -24,11 +24,10 @@ brew "docker"
 brew "docker-compose"
 brew "docker-buildx"
 
-# .NET (C# dev + Azure Functions)
+# .NET / C#
 brew "dotnet"
 
 # core dev tools
-brew "ffmpeg"
 brew "gh"
 brew "git"
 brew "hugo"
@@ -50,10 +49,6 @@ brew "zoxide"
 # git
 brew "git-delta"
 brew "lazygit"
-
-# misc dev
-brew "ocrmypdf"
-brew "typst"
 
 # mac app store cli
 brew "mas"
