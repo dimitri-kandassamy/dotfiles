@@ -73,7 +73,9 @@ GUI daemon. The `docker` CLI, `docker-compose` and `docker-buildx` are separate 
 Start the VM with `colima start`, or `brew services start colima` to have it start at login.
 
 ### Mobile / Android
-Flutter (manual, see below) · Android SDK (manual, see below)
+Flutter (manual, see below). No Android Studio and therefore no Android SDK — iOS and web
+targets work via Xcode, but building for Android needs the SDK installed by hand first
+(see [Manual steps](#manual-steps-after-the-install)).
 
 ### Terminal
 iTerm2 loads its settings from `~/.config/iterm2/` instead of its own prefs domain, so
@@ -146,7 +148,9 @@ Wiring, once applied:
 What remains:
 
 - **Flutter SDK** — download from [flutter.dev](https://flutter.dev) and place at `~/DevTools/flutter/`.
-- **Android SDK** — `android-studio` is in the `Brewfile`; open it once to download the SDK to `~/Library/Android/sdk`.
+- **Android SDK** — only if you need to build Flutter for Android. `brew install --cask
+  android-studio`, then open it once to download the SDK to `~/Library/Android/sdk`;
+  `~/.zshrc` picks up `ANDROID_HOME` automatically once that directory exists.
 - **eTax.zug** — Swiss tax software, not on Homebrew; reinstall by hand when needed.
 - **VS Code** — sign in and enable Settings Sync to restore extensions and settings.
 - **iTerm2** — settings are restored automatically, but iTerm2 only re-reads them on
