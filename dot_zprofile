@@ -11,6 +11,16 @@ for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
 done
 unset _brew
 
+# Editor. `code` comes from the visual-studio-code cask, which symlinks it into
+# the Homebrew prefix; --wait blocks so git, kubectl edit, fc etc. work. Falls
+# back to vi on a machine where VS Code isn't installed yet.
+if command -v code &>/dev/null; then
+  export EDITOR="code --wait"
+else
+  export EDITOR="vi"
+fi
+export VISUAL="$EDITOR"
+
 # 1Password SSH agent — keys are served from the vault, never written to disk.
 # ~/.ssh/config points ssh itself at the socket (so VS Code and other GUI apps
 # work too); this covers tools that read SSH_AUTH_SOCK directly, e.g. `ssh-add -l`.

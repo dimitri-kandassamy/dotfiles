@@ -555,11 +555,12 @@ defaults write com.apple.terminal SecureKeyboardEntry -bool true
 # Disable the annoying line marks
 defaults write com.apple.Terminal ShowLineMarks -int 0
 
-# Install the Solarized Dark theme for iTerm
-# open "${HOME}/init/Solarized Dark.itermcolors"
-
-# Don’t display the annoying prompt when quitting iTerm
-# defaults write com.googlecode.iterm2 PromptOnQuit -bool false
+# iTerm2: load settings from the chezmoi-managed folder rather than the app's
+# own prefs domain, so profiles/fonts/keybindings survive a wipe. Everything
+# else about iTerm2 lives in ~/.config/iterm2/com.googlecode.iterm2.plist.
+# Quit iTerm2 before this takes effect — it rewrites its prefs on exit.
+defaults write com.googlecode.iterm2 PrefsCustomFolder -string "${HOME}/.config/iterm2"
+defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
 
 ###############################################################################
 # Time Machine                                                                #

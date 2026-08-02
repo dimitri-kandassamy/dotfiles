@@ -32,7 +32,6 @@ brew "git"
 brew "hugo"
 brew "jq"
 brew "yq"
-brew "llvm"
 brew "pandoc"
 brew "pnpm"
 brew "scc"
@@ -50,16 +49,17 @@ brew "zoxide"
 brew "git-delta"
 brew "lazygit"
 
-# android / mobile dev
-brew "apktool"
-brew "jadx"
-
 # misc dev
 brew "ocrmypdf"
 brew "typst"
 
 # mac app store cli
 brew "mas"
+
+# fonts — Starship's prompt symbols and `eza --icons` are Nerd Font glyphs, and
+# the iTerm2 profile pins MesloLGSNerdFont-Regular. Previously this font arrived
+# as a side effect of the Powerlevel10k wizard, which is gone.
+cask "font-meslo-lg-nerd-font"
 
 # apps
 cask "1password"

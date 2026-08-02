@@ -30,6 +30,9 @@
 [core]
     excludesfile = ~/.gitignore
     pager = delta
+    # Set here as well as $EDITOR, so git launched from a GUI app (which never
+    # reads ~/.zprofile) still opens VS Code rather than vi.
+    editor = code --wait
 [interactive]
     diffFilter = delta --color-only
 [delta]
