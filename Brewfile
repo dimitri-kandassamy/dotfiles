@@ -16,6 +16,9 @@ brew "azure/functions/azure-functions-core-tools@4"
 
 # cloud / infra
 brew "hashicorp/tap/terraform"
+# kubectl itself — previously only present because Docker Desktop bundled it,
+# which every other tool here silently depended on
+brew "kubernetes-cli"
 brew "helm"
 brew "kind"
 brew "k9s"
