@@ -43,3 +43,17 @@ if [[ -d "$plugin_dir" ]]; then
     [[ -e "$plugin" ]] && ln -sfn "$plugin" "$HOME/.docker/cli-plugins/$(basename "$plugin")"
   done
 fi
+
+# Clone the zsh plugins now rather than on the first interactive shell. Revisions
+# come from the `rev` pins in plugins.toml, so this only fetches what those name.
+if command -v sheldon &>/dev/null; then
+  echo "Fetching sheldon plugins..."
+  sheldon lock
+fi
+
+# Install the tool versions named in ~/.config/mise/config.toml, so the first
+# shell after a fresh install already has node, python and go.
+if command -v mise &>/dev/null; then
+  echo "Installing mise tools..."
+  mise install
+fi
