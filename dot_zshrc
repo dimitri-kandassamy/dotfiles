@@ -1,7 +1,23 @@
-# History — Oh My Zsh used to configure this. Without it you fall back to
-# macOS /etc/zshrc, which saves only 1000 lines: far too few now that fzf's
-# Ctrl+R is the main way to reach it.
-HISTFILE="$HOME/.zsh_history"
+# Interactive shell configuration.
+#
+# Ordering matters and is deliberate:
+#   1. history and options   — no dependencies
+#   2. sheldon               — puts plugin dirs on FPATH, defines zsh-defer
+#   3. compinit              — must see the full FPATH, must precede compdef
+#   4. tool integrations     — fzf, mise, zoxide
+#   5. language toolchains   — deferred, none are needed before the first prompt
+#   6. starship              — last, so it wraps the final shell state
+#
+# Everything expensive that isn't needed before the first prompt is handed to
+# zsh-defer (see ~/.config/sheldon/plugins.toml). Measure with
+# `scripts/bench-shell.sh` before changing any of this.
+
+# ---------------------------------------------------------------------- history
+# Oh My Zsh used to configure this. Without it you fall back to macOS
+# /etc/zshrc, which saves only 1000 lines: far too few now that fzf's Ctrl+R is
+# the main way to reach history.
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
+mkdir -p "${HISTFILE:h}"
 HISTSIZE=50000
 SAVEHIST=50000
 setopt EXTENDED_HISTORY       # record a timestamp per command
@@ -11,31 +27,77 @@ setopt HIST_IGNORE_SPACE      # skip commands typed with a leading space
 setopt HIST_REDUCE_BLANKS
 setopt HIST_VERIFY            # expand !! onto the line instead of running it
 
-# Completion system — Oh My Zsh used to run this too. It must come before
-# anything that calls compdef (sheldon plugins, bashcompinit below), and after
-# ~/.zprofile has put Homebrew's site-functions on FPATH.
+# --------------------------------------------------------------------- options
+setopt AUTO_CD                # `foo` cds into ./foo
+setopt EXTENDED_GLOB
+setopt NO_BEEP
+setopt INTERACTIVE_COMMENTS   # allow # comments when typing interactively
+
+# --------------------------------------------------------------------- sheldon
+# `sheldon source` is a process spawn on every shell start. Cache its output and
+# regenerate only when plugins.toml is newer, which makes startup a plain
+# `source` of a static file.
+if command -v sheldon &>/dev/null; then
+  _sheldon_toml="${XDG_CONFIG_HOME:-$HOME/.config}/sheldon/plugins.toml"
+  _sheldon_cache="${XDG_CACHE_HOME:-$HOME/.cache}/sheldon.zsh"
+  if [[ ! -r "$_sheldon_cache" || "$_sheldon_toml" -nt "$_sheldon_cache" ]]; then
+    mkdir -p "${_sheldon_cache:h}"
+    sheldon source > "$_sheldon_cache"
+  fi
+  source "$_sheldon_cache"
+  unset _sheldon_toml _sheldon_cache
+fi
+
+# ------------------------------------------------------------------- completion
+# Rebuilding the completion dump is the single most expensive thing a zsh
+# startup does. Do the full security check once a day; use the cached dump (-C)
+# every other time.
 autoload -Uz compinit
-mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}"
-compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zcompdump"
+_zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
+mkdir -p "${_zcompdump:h}"
+if [[ -n ${_zcompdump}(#qN.mh+24) ]]; then
+  compinit -d "$_zcompdump"       # dump older than 24h — full rebuild
+else
+  compinit -C -d "$_zcompdump"    # fresh enough — skip the check
+fi
+unset _zcompdump
 
-# Sheldon plugin manager (replaces Oh My Zsh)
-command -v sheldon &>/dev/null && eval "$(sheldon source)"
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'   # case-insensitive
+zstyle ':completion:*' menu no                            # fzf-tab draws the menu
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 
-# mise — polyglot version manager (Node, Python, Go, Terraform …)
+# ----------------------------------------------------------------- integrations
+# fzf: Ctrl+R history, Ctrl+T files, Alt+C directories. The fd-backed commands
+# are what make Ctrl+T and Alt+C respect .gitignore and skip .git.
+if command -v fzf &>/dev/null; then
+  source <(fzf --zsh)
+  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+  export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
+fi
+
+# mise — polyglot version manager (Node, Python, Go …), resolved per project.
 command -v mise &>/dev/null && eval "$(mise activate zsh)"
 
-# fzf shell integration (Ctrl+R, Ctrl+T, Alt+C)
-command -v fzf &>/dev/null && source <(fzf --zsh)
-
-# zoxide — smart cd with frecency tracking
+# zoxide — `z foo` jumps to the most-used directory matching foo.
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 
-# Aliases
-[[ -f "$HOME/.aliases" ]] && source "$HOME/.aliases"
+# ------------------------------------------------------------------- toolchains
+# None of these are needed before the first prompt, and each one is either a
+# directory stat or a process spawn. zsh-defer runs them after the prompt is up,
+# so they cost nothing you can perceive. The guard keeps the file working on a
+# machine where sheldon hasn't run yet.
+if ! command -v zsh-defer &>/dev/null; then
+  zsh-defer() { "$@"; }
+fi
 
-# Go — user-installed binaries (go install …)
+# Go — user-installed binaries (go install …). GOPATH is exported unconditionally
+# because tooling reads it whether or not the directory exists yet.
 export GOPATH="$HOME/go"
-export PATH="$GOPATH/bin:$PATH"
+[[ -d "$GOPATH/bin" ]] && export PATH="$GOPATH/bin:$PATH"
 
 # Flutter SDK (manual install at ~/DevTools/flutter)
 [[ -d "$HOME/DevTools/flutter/bin" ]] && export PATH="$PATH:$HOME/DevTools/flutter/bin"
@@ -46,17 +108,30 @@ export PATH="$GOPATH/bin:$PATH"
 # Android SDK (installed via Android Studio)
 if [[ -d "$HOME/Library/Android/sdk" ]]; then
   export ANDROID_HOME="$HOME/Library/Android/sdk"
-  export PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools"
+  export PATH="$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin"
 fi
 
-# Dart CLI completion
-[[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ]] && source "$HOME/.dart-cli-completion/zsh-config.zsh"
+# Dart CLI completion — sources a file, so defer it.
+[[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ]] && \
+  zsh-defer source "$HOME/.dart-cli-completion/zsh-config.zsh"
 
-# Terraform shell completion (bashcompinit needs compinit to have run first)
-if command -v terraform &>/dev/null; then
+# Terraform completion. `complete -C` needs bashcompinit, which needs compinit to
+# have run. Deferred because resolving the binary path is a subshell spawn and
+# nothing needs tab-completion before the prompt exists.
+_terraform_completion() {
+  local tf; tf=$(command -v terraform) || return
   autoload -U +X bashcompinit && bashcompinit
-  complete -o nospace -C "$(which terraform)" terraform
-fi
+  complete -o nospace -C "$tf" terraform
+}
+zsh-defer _terraform_completion
 
-# Starship prompt (replaces Powerlevel10k) — keep last so it wraps the final shell state
+# --------------------------------------------------------------------- aliases
+[[ -f "$HOME/.aliases" ]] && source "$HOME/.aliases"
+
+# ----------------------------------------------------------------------- local
+# Machine-local interactive config that must not be committed: per-client
+# shortcuts, functions pointing at specific hosts, experiments.
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+
+# ---------------------------------------------------------------------- prompt
 command -v starship &>/dev/null && eval "$(starship init zsh)"
