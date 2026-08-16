@@ -1,0 +1,31 @@
+// Only bindings that differ from the defaults. Kept short on purpose — every
+// entry here is one more thing to remember on a machine you may have to rebuild.
+[
+  // Terminal panel on the same key as the editor's, so it toggles rather than
+  // needing two different chords.
+  {
+    "key": "cmd+j",
+    "command": "workbench.action.togglePanel"
+  },
+  // Move a line without the default alt+up/down, which collides with Ghostty's
+  // split navigation when VS Code's terminal has focus.
+  {
+    "key": "cmd+shift+up",
+    "command": "editor.action.moveLinesUpAction",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+shift+down",
+    "command": "editor.action.moveLinesDownAction",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  // Quick file-level navigation.
+  {
+    "key": "cmd+shift+e",
+    "command": "workbench.view.explorer"
+  },
+  {
+    "key": "cmd+0",
+    "command": "workbench.action.focusActiveEditorGroup"
+  }
+]

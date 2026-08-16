@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Installs the VS Code extensions listed in vscode/extensions.txt. Keyed on that
+# file's hash, so adding a package to the Brewfile doesn't re-run it.
+#
+# extensions.txt hash: {{ include "vscode/extensions.txt" | sha256sum }}
+
+set -euo pipefail
+
+LIST="{{ .chezmoi.sourceDir }}/vscode/extensions.txt"
+
+if ! command -v code &>/dev/null; then
+  echo "VS Code CLI not on PATH — skipping extensions."
+  echo "Open VS Code once, or check that the cask installed, then re-run:"
+  echo "  chezmoi apply --force"
+  exit 0
+fi
+
+# Compare against what's installed so this is quiet on a machine that's already
+# in the right state. `code --list-extensions` returns IDs in lowercase.
+installed="$(code --list-extensions | tr '[:upper:]' '[:lower:]')"
+
+while IFS= read -r ext; do
+  ext="${ext%%#*}"                          # strip trailing comments
+  ext="$(echo "$ext" | tr -d '[:space:]')"  # strip whitespace
+  [[ -z "$ext" ]] && continue
+
+  if grep -qxF "$(echo "$ext" | tr '[:upper:]' '[:lower:]')" <<<"$installed"; then
+    continue
+  fi
+
+  echo "Installing extension: $ext"
+  code --install-extension "$ext" --force
+done < "$LIST"
+
+echo "VS Code extensions up to date."

@@ -1,0 +1,49 @@
+# Extensions installed by run_onchange_after_20-vscode.sh.
+# One marketplace ID per line; blank lines and # comments ignored.
+#
+# Regenerate from the machine you like the state of:
+#     code --list-extensions > vscode/extensions.txt
+# Keep it curated rather than dumped — every extension is startup time and a
+# background process, which is felt more on this machine than on newer hardware.
+
+# --- python
+charliermarsh.ruff
+ms-python.python
+ms-python.vscode-pylance
+ms-python.debugpy
+
+# --- typescript / react
+biomejs.biome
+dbaeumer.vscode-eslint
+bradlc.vscode-tailwindcss
+
+# --- .NET / C#
+ms-dotnettools.csdevkit
+ms-dotnettools.csharp
+
+# --- dart / flutter
+dart-code.dart-code
+dart-code.flutter
+
+# --- go
+golang.go
+
+# --- terraform
+hashicorp.terraform
+
+# --- data / config formats
+redhat.vscode-yaml
+tamasfe.even-better-toml
+
+# --- git
+eamodio.gitlens
+
+# --- containers / k8s
+ms-azuretools.vscode-docker
+ms-kubernetes-tools.vscode-kubernetes-tools
+ms-vscode-remote.remote-containers
+
+# --- general
+editorconfig.editorconfig
+usernamehw.errorlens
+github.vscode-github-actions

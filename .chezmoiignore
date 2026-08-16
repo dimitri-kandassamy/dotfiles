@@ -6,6 +6,9 @@ Brewfile
 README.md
 LICENSE
 scripts/
+vscode/
+.githooks/
+.editorconfig
 
 {{- if not .sshSigningKey }}
 # No signing key configured, so don't create an empty allowed_signers file

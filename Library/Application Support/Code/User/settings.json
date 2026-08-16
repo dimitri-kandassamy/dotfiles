@@ -1,0 +1,156 @@
+{
+  // Tracked in the dotfiles repo instead of Settings Sync, which leaves nothing
+  // reviewable in git and binds the config to an account rather than a machine.
+
+  // ------------------------------------------------------------ editor basics
+  "editor.fontFamily": "'JetBrainsMono Nerd Font', Menlo, monospace",
+  "editor.fontSize": 13,
+  "editor.fontLigatures": true,
+  "editor.lineHeight": 1.6,
+  "editor.rulers": [88, 120],
+  "editor.renderWhitespace": "boundary",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.linkedEditing": true,
+  "editor.inlineSuggest.enabled": true,
+  "editor.stickyScroll.enabled": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  // ------------------------------------------------------------ responsiveness
+  // Every entry below is a thing VS Code otherwise does on a timer or on every
+  // keystroke. This machine has no efficiency cores to hide that on, so these
+  // are the difference between instant and sluggish.
+  "editor.cursorSmoothCaretAnimation": "off",
+  "editor.smoothScrolling": false,
+  "workbench.list.smoothScrolling": false,
+  "terminal.integrated.smoothScrolling": false,
+  "workbench.reduceMotion": "on",
+  "editor.minimap.enabled": false,
+  "editor.hover.delay": 500,
+  "editor.suggest.preview": true,
+  "workbench.editor.limit.enabled": true,
+  "workbench.editor.limit.value": 12,
+  "workbench.editor.limit.perEditorGroup": true,
+
+  // Files the watcher, search and explorer should never walk. This is the
+  // single biggest lever on CPU and battery in a JS or Python repo.
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.venv/**": true,
+    "**/venv/**": true,
+    "**/__pycache__/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.ruff_cache/**": true,
+    "**/.pytest_cache/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.next/**": true,
+    "**/.turbo/**": true,
+    "**/.dart_tool/**": true,
+    "**/bin/Debug/**": true,
+    "**/obj/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/.dart_tool": true,
+    "**/obj": true,
+    "**/pnpm-lock.yaml": true,
+    "**/uv.lock": true
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.DS_Store": true
+  },
+  "search.followSymlinks": false,
+
+  // ------------------------------------------------------------------- files
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.autoSave": "onFocusChange",
+
+  // ---------------------------------------------------------------- workbench
+  "workbench.startupEditor": "none",
+  "workbench.editor.enablePreview": false,
+  "workbench.tree.indent": 16,
+  "breadcrumbs.enabled": true,
+  "window.titleBarStyle": "custom",
+
+  // ----------------------------------------------------------------- terminal
+  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font'",
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.scrollback": 10000,
+
+  // ------------------------------------------------------------------- python
+  // Ruff is the formatter and the linter; it replaces black, flake8 and isort.
+  // Pylance handles types. uv creates .venv in the project root, which is where
+  // the interpreter is picked up from.
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.typeCheckingMode": "standard",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.inlayHints.functionReturnTypes": true,
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+
+  // -------------------------------------------------- typescript / javascript
+  // Biome formats and lints in one pass. Projects that ship their own
+  // eslint/prettier config override this from their workspace settings.
+  "[javascript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[javascriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[jsonc]": { "editor.defaultFormatter": "biomejs.biome" },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+
+  // ---------------------------------------------------------------- other langs
+  "[yaml]": { "editor.defaultFormatter": "redhat.vscode-yaml" },
+  "[markdown]": { "editor.wordWrap": "on", "files.trimTrailingWhitespace": false },
+  "[toml]": { "editor.defaultFormatter": "tamasfe.even-better-toml" },
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.rulers": [80],
+    "editor.selectionHighlight": false,
+    "editor.suggestSelection": "first"
+  },
+  "[go]": { "editor.defaultFormatter": "golang.go" },
+
+  // ---------------------------------------------------------------------- git
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.openRepositoryInParentFolders": "never",
+  "diffEditor.ignoreTrimWhitespace": false,
+
+  // --------------------------------------------------------------- telemetry
+  "telemetry.telemetryLevel": "off",
+  "redhat.telemetry.enabled": false,
+  "update.showReleaseNotes": false
+}
