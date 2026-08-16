@@ -10,7 +10,9 @@ Icon?
 ._*
 
 # Editors
-.vscode/
+# Not listed: .vscode/. A workspace settings.json is frequently a file the repo
+# genuinely wants committed, so globally ignoring it is the same footgun as
+# *.patch below.
 .idea/
 *.swp
 *.un~
@@ -22,5 +24,18 @@ Session.vim
 *.ignored/
 *.ignored.*
 
-# Direnv / tool-local state
+# Anything named *.local is machine-local by convention
+*.local
+
+# Not listed: *.patch. Patch files are legitimate fixtures in some repos, and a
+# global ignore is the hardest kind to debug when it silently swallows one.
+# Ignore them per-project where that's actually true.
+
+# Tool-local state
 .direnv/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+__pycache__/
+node_modules/
+.eslintcache
