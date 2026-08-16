@@ -1,189 +1,325 @@
 # dotfiles
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+macOS configuration managed with [chezmoi](https://www.chezmoi.io).
 
-Personal macOS dotfiles managed with [chezmoi](https://www.chezmoi.io).
+**Target:** MacBook Pro (Intel / x86_64), macOS 26 Tahoe. Homebrew prefix `/usr/local`.
 
-## Fresh install
+---
 
-Order matters: the repo is cloned over **SSH** and 1Password serves the key, so 1Password
-must be ready *before* chezmoi runs.
+## Overview
 
-1. **Sign into your Apple ID** (System Settings) so the Mac App Store can install `mas` apps later.
-2. **Install [1Password](https://1password.com/downloads/mac/)** → sign in → Settings →
-   Developer → enable **SSH agent** and **CLI integration**. Make sure your SSH key exists as
-   an *SSH Key* item and is registered on GitHub for both *Authentication* and *Signing*
-   (see [Keys & commit signing](#keys--commit-signing-1password-ssh-agent)).
-3. **Install [Homebrew](https://brew.sh)**, then chezmoi:
-   ```bash
-   brew install chezmoi
-   chezmoi init --apply git@github.com:dimitri-kandassamy/dotfiles.git
-   ```
-   Homebrew's installer prints two `eval` lines to add `brew` to your `PATH` — run them, or
-   just open a new terminal after installing (`~/.zprofile` handles it from then on).
+| Area       | Tooling                                                                                              |
+| ---------- | ---------------------------------------------------------------------------------------------------- |
+| Shell      | zsh, [sheldon](https://sheldon.cli.rs) plugins, [starship](https://starship.rs) prompt               |
+| Languages  | [mise](https://mise.jdx.dev) (node, python, go), [uv](https://docs.astral.sh/uv/) (python packaging) |
+| Terminal   | Ghostty (primary), iTerm2 (fallback)                                                                 |
+| Editor     | VS Code — settings, keybindings and extensions tracked                                               |
+| Containers | colima + docker CLI                                                                                  |
+| Cloud      | terraform, kubectl, k9s                                                                              |
+| Secrets    | 1Password SSH agent for auth and commit signing                                                      |
+| CLI        | bat, eza, fd, ripgrep, fzf, zoxide, jq, yq, delta, lazygit, gh                                       |
 
-   You'll be prompted for name, email, and `sshSigningKey`. chezmoi writes the config files
-   first, then runs two scripts in order: `brew bundle` installs every package, and `~/.macos`
-   applies the system preferences (expect a `sudo` password prompt, and Finder/Dock/Chrome
-   restarting at the end).
-4. Open a new shell — Starship, mise, zoxide, and fzf are live.
+---
 
-`10-brew.sh` re-runs whenever the `Brewfile` changes; `20-macos.sh` re-runs only when
-`dot_macos` itself changes, so adding a package doesn't reapply every system default.
+## Prerequisites
 
-## What's included
+Complete all of these **before** starting the installation.
 
-### Shell
-- **zsh** with [sheldon](https://sheldon.cli.rs) as plugin manager (replaces Oh My Zsh)
-- [Starship](https://starship.rs) prompt (config at `~/.config/starship.toml`)
-- Plugins: `zsh-autosuggestions`, `fast-syntax-highlighting`
-- **iTerm2**, settings included (see [Terminal](#terminal)). Starship's symbols and
-  `eza --icons` need a Nerd Font, so `font-meslo-lg-nerd-font` is in the `Brewfile`.
-- `$EDITOR` / `git core.editor` are `code --wait`
+### 1. Back up the old machine
 
-### Version management
-- **[mise](https://mise.jdx.dev)** — manages Node, Python, and Go versions via `.mise.toml` per project, replacing `nvm` and `pyenv`
-- **[uv](https://docs.astral.sh/uv)** — Python package and virtualenv management
+Confirm you can restore anything not in a git remote — SSH keys are in 1Password,
+but local-only work is not.
 
-### Modern CLI
-| Tool | Replaces | Purpose |
-|------|----------|---------|
-| `eza` | `ls` | Directory listings with git status and icons |
-| `bat` | `cat` | Syntax-highlighted file output |
-| `fd` | `find` | Fast, gitignore-aware file search |
-| `ripgrep` | `grep` | Fast recursive code search |
-| `fzf` | — | Fuzzy finder (Ctrl+R history, Ctrl+T file picker) |
-| `zoxide` | `cd` | Smart directory jumping with frecency |
-| `delta` | git diff | Syntax-highlighted diffs with side-by-side support |
-| `lazygit` | git CLI | Terminal UI for staging, rebasing, and branch management |
-| `yq` | — | YAML processor (pairs with `jq`) |
+### 2. Install macOS and complete Setup Assistant
 
-### Kubernetes
-`kubectl` · `k9s` — enough to talk to a remote cluster and look around. No local-cluster
-tooling: `kind`, `helm`, `kubectx` and `stern` were dropped as unused.
+Create your user account and connect to a network. Skip Migration Assistant if
+you want a genuinely clean install.
 
-### Cloud / infrastructure
-`terraform` (via `hashicorp` tap) · `dotnet` — the Azure CLI and Functions Core Tools were
-dropped as unused; reinstall with `brew install azure-cli` if that work comes back.
+### 3. Sign in to the App Store
 
-### Containers
-[colima](https://github.com/abiosoft/colima) instead of Docker Desktop — no licence and no
-GUI daemon. The `docker` CLI, `docker-compose` and `docker-buildx` are separate formulae
-(only Desktop bundled them); `10-brew.sh` links the plugins into `~/.docker/cli-plugins`.
-Start the VM with `colima start`, or `brew services start colima` to have it start at login.
+Open the App Store app and sign in. The `Brewfile` will install Xcode, Numbers and
+iMovie via `mas`, which cannot sign in on your behalf.
 
-### Mobile / Android
-Flutter (manual, see below). No Android Studio and therefore no Android SDK — iOS and web
-targets work via Xcode, but building for Android needs the SDK installed by hand first
-(see [Manual steps](#manual-steps-after-the-install)).
+---
 
-### Terminal
-iTerm2 loads its settings from `~/.config/iterm2/` instead of its own prefs domain, so
-profiles, fonts and keybindings are version-controlled. `dot_macos` flips the two
-`defaults` keys that point it there. After changing something in iTerm2's UI, capture it:
+## Installation
+
+### Step 1 — Install Homebrew
 
 ```bash
-chezmoi re-add ~/.config/iterm2/com.googlecode.iterm2.plist
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+eval "$(/usr/local/bin/brew shellenv)"
 ```
 
-Window positions and other volatile state (`NoSync*`, `NSWindow Frame*`, Sparkle keys)
-are deliberately excluded from the tracked plist.
+The installer also installs the Xcode Command Line Tools if missing. Run the
+`eval` now — the next step depends on it. From the next shell onward,
+`~/.zprofile` handles it.
 
-## Repository structure
-
-```
-dotfiles/
-├── .chezmoi.toml.tmpl          # machine-level config (name, email, ssh signing key)
-├── .chezmoiignore              # files not applied to $HOME
-├── dot_zprofile                # → ~/.zprofile (Homebrew PATH, $EDITOR, 1Password socket)
-├── dot_zshrc                   # → ~/.zshrc
-├── dot_aliases                 # → ~/.aliases
-├── dot_gitconfig.tmpl          # → ~/.gitconfig (SSH commit signing via 1Password)
-├── dot_gitignore               # → ~/.gitignore (global excludes)
-├── dot_macos                   # → ~/.macos (macOS system preferences script)
-├── private_dot_ssh/
-│   └── private_config          # → ~/.ssh/config (1Password agent for GUI apps too)
-├── dot_config/
-│   ├── starship.toml          # → ~/.config/starship.toml (prompt config)
-│   ├── git/allowed_signers.tmpl # → ~/.config/git/allowed_signers (verify SSH signatures)
-│   ├── sheldon/plugins.toml   # → ~/.config/sheldon/plugins.toml
-│   ├── mise/config.toml       # → ~/.config/mise/config.toml
-│   └── iterm2/com.googlecode.iterm2.plist # → ~/.config/iterm2/ (iTerm2 settings)
-├── Brewfile                                       # Homebrew bundle manifest
-├── run_onchange_after_10-brew.sh.tmpl             # brew bundle (re-runs on Brewfile change)
-├── run_onchange_after_20-macos.sh.tmpl            # runs ~/.macos (re-runs on dot_macos change)
-└── scripts/
-    └── git-log-diary.sh                            # convert git log to a markdown diary
-```
-
-## Keys & commit signing (1Password SSH agent)
-
-SSH keys are served by the [1Password SSH agent](https://developer.1password.com/docs/ssh/) —
-they live in your vault and never touch disk. The same key is used for git/ssh
-authentication **and** commit signing (git 2.34+ signs with SSH, no GPG needed).
-
-On first `chezmoi init` you'll be prompted for:
-
-- `sshSigningKey` — your SSH **public** key (e.g. `ssh-ed25519 AAAA…`). Empty disables
-  commit signing. This is written to `~/.gitconfig` and `~/.config/git/allowed_signers`.
-
-Setup (one-time, in the 1Password desktop app):
-
-1. Settings → Developer → enable **SSH agent** and **CLI integration**.
-2. Store your SSH key as an **SSH Key** item (import the existing one if needed).
-3. Open the item → **Configure Commit Signing**, and copy the public key into `sshSigningKey`.
-4. Register the key on GitHub for **both** "Authentication" and "Signing".
-
-Wiring, once applied:
-
-- `~/.ssh/config` sets `IdentityAgent` to the 1Password socket. This is what makes the agent
-  work for GUI apps and non-interactive shells — VS Code's built-in git, LaunchAgents, cron —
-  none of which read `~/.zshrc`.
-- `~/.zprofile` also exports `SSH_AUTH_SOCK`, for tools that read it directly (`ssh-add -l`).
-- `~/.gitconfig` points `gpg.ssh.program` at 1Password's `op-ssh-sign` binary.
-
-## Manual steps (after the install)
-
-1Password, the Mac App Store, and Homebrew are covered in [Fresh install](#fresh-install).
-What remains:
-
-- **Flutter SDK** — download from [flutter.dev](https://flutter.dev) and place at `~/DevTools/flutter/`.
-- **Android SDK** — only if you need to build Flutter for Android. `brew install --cask
-  android-studio`, then open it once to download the SDK to `~/Library/Android/sdk`;
-  `~/.zshrc` picks up `ANDROID_HOME` automatically once that directory exists.
-- **eTax.zug** — Swiss tax software, not on Homebrew; reinstall by hand when needed.
-- **VS Code** — sign in and enable Settings Sync to restore extensions and settings.
-- **iTerm2** — settings are restored automatically, but iTerm2 only re-reads them on
-  launch. If it was already running during the install, quit and reopen it once.
-
-## Day-to-day workflow
+### Step 2 — Install chezmoi and apply
 
 ```bash
-chezmoi update          # pull latest from the remote and apply
-chezmoi apply           # re-apply local source to $HOME (idempotent)
-chezmoi diff            # preview pending changes before applying
-chezmoi cd              # drop into the source dir ($HOME/.local/share/chezmoi)
-chezmoi re-add ~/.zshrc # capture local edits back into the source
-chezmoi doctor          # diagnose a broken setup
+brew install chezmoi
+chezmoi init --apply https://github.com/dimitri-kandassamy/dotfiles.git
 ```
 
-After editing files inside the source dir, commit and push from there:
+You will be prompted for four values:
+
+| Prompt          | Answer                                                    |
+| --------------- | --------------------------------------------------------- |
+| Name            | Git author name                                           |
+| Email           | Git author email                                          |
+| GitHub username | Your GitHub handle                                        |
+| SSH signing key | Your existing public key, `ssh-ed25519 AAAA…` — see below |
+
+Copy the GitHub signing key from [github.com/settings/keys](https://github.com/settings/keys).
+
+### Step 3 — Wait for the install scripts
+
+Three scripts run automatically, in order:
+
+| Script      | Actions                                                                      | Re-runs when                    |
+| ----------- | ---------------------------------------------------------------------------- | ------------------------------- |
+| `10-brew`   | `brew bundle`, links docker CLI plugins, fetches zsh plugins, `mise install` | `Brewfile` changes              |
+| `20-vscode` | installs VS Code extensions                                                  | `vscode/extensions.txt` changes |
+| `30-macos`  | runs `~/.macos` — prompts for sudo, restarts Dock and Finder                 | `dot_macos` changes             |
+
+Allow 30–60 minutes.
+
+### Step 4 — Configure 1Password
+
+1. Open 1Password and sign in.
+2. **Settings → Developer** → enable **SSH agent** and **CLI integration**.
+3. Confirm your key exists as an **SSH Key** item (not a note or password), and
+   that it is the same key you pasted in Step 2.
+4. On [github.com/settings/keys](https://github.com/settings/keys), confirm the
+   key is registered as an _Authentication key_ and as a
+   _Signing key_.
+
+Verify the two paths:
+
+```bash
+ls ~/Library/Group\ Containers/ | grep -i 1password
+ls /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+```
+
+Open a new terminal, then confirm the agent is reachable:
+
+```bash
+ssh -T git@github.com
+```
+
+### Step 5 — Switch the source repository to SSH
+
+The clone in Step 2 used HTTPS. Now that the agent works, move it to SSH:
+
+```bash
+git -C "$(chezmoi source-path)" remote set-url origin git@github.com:dimitri-kandassamy/dotfiles.git
+```
+
+### Step 6 — Install the commit hooks
+
+Installs the `gitleaks` credential scan. `core.hooksPath` is per-clone local
+configuration and cannot be committed, so this is required on every machine.
 
 ```bash
 chezmoi cd
-git add . && git commit -m "…" && git push
+./scripts/install-hooks.sh
+exit
 ```
 
-## Adding a new machine variable
+### Step 7 — Restart
 
-Edit `.chezmoi.toml.tmpl` to add a `promptStringOnce` line and a `[data]` entry, then reference it as `{{ .variableName }}` in any `*.tmpl` file. Existing machines won't re-prompt unless you delete the value from `~/.config/chezmoi/chezmoi.toml`.
+Some macOS defaults require a logout or restart to take effect.
 
-## Thanks
+---
 
-- [GitHub does dotfiles](https://dotfiles.github.io/) for resources and inspiration
-- [Mathias Bynens](https://github.com/mathiasbynens/dotfiles) for the comprehensive macOS preferences
-- [Dries Vint](https://github.com/driesvints/dotfiles), [Zach Holman](https://github.com/holman/dotfiles) and [Jessie Frazelle](https://github.com/jessfraz/dotfiles) for sharing their dotfiles
+## Verification
+
+Open a new terminal — the starship prompt should appear with no errors — then run
+each block.
+
+**Git identity and SSH agent.**
+
+```bash
+git config user.email
+git config user.name
+ssh -T git@github.com
+ssh-add -l
+```
+
+**Commit signing.** Runs in a scratch repository and cleans up after itself.
+
+```bash
+(
+  d=$(mktemp -d) && cd "$d" && git init -q .
+  git commit --allow-empty -qm "signing test"
+  git log --show-signature -1
+  rm -rf "$d"
+)
+```
+
+Expect `Good "git" signature`.
+
+**Toolchain and packages.**
+
+```bash
+mise ls
+brew bundle check --file="$(chezmoi source-path)/Brewfile"
+```
+
+**Shell startup time.** Record this figure; it is the baseline for future changes.
+
+```bash
+"$(chezmoi source-path)/scripts/bench-shell.sh"
+```
+
+---
+
+## Manual steps
+
+Not automated, by design.
+
+| Task            | Notes                                                                         |
+| --------------- | ----------------------------------------------------------------------------- |
+| **Colima**      | `colima start` to boot the container VM. Not started automatically            |
+| **Flutter SDK** | Install to `~/DevTools/flutter`. `~/.zshrc` adds it to `PATH` only if present |
+| **Android SDK** | Install via Android Studio. Detected at `~/Library/Android/sdk`               |
+| **Ghostty**     | Launch once and set as the default terminal                                   |
+| **iTerm2**      | Reads settings from `~/.config/iterm2/`. Quit and relaunch to pick them up    |
+| **App logins**  | Chrome, Spotify, Notion, Figma, Claude                                        |
+| **Xcode**       | Launch once to accept the licence and install components                      |
+
+---
+
+## Day-to-day
+
+```bash
+chezmoi edit ~/.zshrc       # edit the source, not the target
+chezmoi diff                # preview pending changes
+chezmoi apply               # apply them
+chezmoi re-add ~/.aliases   # pull a hand-edited target back into the source
+chezmoi cd                  # subshell in the source directory
+chezmoi update              # git pull, then apply
+```
+
+Editing a target file directly works, but `chezmoi apply` will overwrite it. Use
+`chezmoi edit`, or `chezmoi re-add` afterwards.
+
+**Adding a package:** edit the `Brewfile`, then `chezmoi apply`. The script hash
+changes and `10-brew` re-runs.
+
+**Updating zsh plugins:** plugins are pinned to commits in
+`dot_config/sheldon/plugins.toml`. Resolve a new revision with
+`git ls-remote https://github.com/<owner>/<repo> HEAD` and update the `rev`.
+
+**Capturing iTerm2 settings:** quit iTerm2 first — it rewrites preferences on
+exit — then `chezmoi re-add ~/.config/iterm2/com.googlecode.iterm2.plist`.
+
+**Changing a prompted value:** `chezmoi init --prompt` re-asks every prompt and
+rewrites `~/.config/chezmoi/chezmoi.toml`. Plain `chezmoi init` will not change
+an answer that is already recorded.
+
+---
+
+## Machine-local overrides
+
+Untracked files for anything machine-specific or private. All are optional and
+safe when absent.
+
+| File                            | Purpose                                             |
+| ------------------------------- | --------------------------------------------------- |
+| `~/.zshenv.local`               | environment variables, tokens                       |
+| `~/.zshrc.local`                | interactive aliases and functions                   |
+| `~/.ssh/config.local`           | per-host ssh settings                               |
+| `~/.config/git/local.gitconfig` | alternate identities, url rewrites, private remotes |
+
+The two include directives are positioned for opposite precedence rules and must
+stay where they are: ssh takes the **first** value it sees, so its `Include` is at
+the top of `~/.ssh/config`; git takes the **last**, so its `[include]` is at the
+bottom of `~/.gitconfig`.
+
+---
+
+## Repository layout
+
+```
+.
+├── .chezmoi.toml.tmpl                  # prompts → ~/.config/chezmoi/chezmoi.toml
+├── .chezmoiignore                      # source-only files, never applied
+├── .editorconfig
+├── .githooks/pre-commit                # gitleaks credential scan
+├── Brewfile                            # packages, casks, App Store apps
+├── dot_zshenv                          # → ~/.zshenv    (XDG paths, every shell)
+├── dot_zprofile                        # → ~/.zprofile  (login shells)
+├── dot_zshrc                           # → ~/.zshrc     (interactive shells)
+├── dot_aliases                         # → ~/.aliases
+├── dot_gitconfig.tmpl                  # → ~/.gitconfig
+├── dot_gitignore                       # → ~/.gitignore (global)
+├── dot_macos                           # → ~/.macos     (system defaults)
+├── dot_config/
+│   ├── ghostty/config
+│   ├── git/allowed_signers.tmpl
+│   ├── iterm2/com.googlecode.iterm2.plist
+│   ├── mise/config.toml
+│   ├── sheldon/plugins.toml
+│   └── starship.toml
+├── private_dot_ssh/private_config      # → ~/.ssh/config
+├── Library/Application Support/Code/User/
+│   ├── settings.json
+│   └── keybindings.json
+├── vscode/extensions.txt
+├── scripts/
+│   ├── bench-shell.sh                  # zsh startup benchmark
+│   ├── install-hooks.sh
+│   └── git-log-diary.sh
+├── run_onchange_after_10-brew.sh.tmpl
+├── run_onchange_after_20-vscode.sh.tmpl
+└── run_onchange_after_30-macos.sh.tmpl
+```
+
+---
+
+## Troubleshooting
+
+**`brew bundle` fails immediately.**
+An application in the `Brewfile` is already installed by another route. Remove
+that line, or uninstall the application and let Homebrew manage it.
+
+**VS Code extensions were skipped.**
+The `code` CLI was not on `PATH`. Open VS Code once, then `chezmoi apply --force`.
+
+**`git commit` fails with `failed to write commit object`.**
+A signing key is configured but the 1Password signing helper is unreachable.
+Confirm 1Password is running and Step 4 is complete.
+
+**Commits succeed but are unsigned.**
+The signing key was left empty in Step 2. Re-run `chezmoi init --prompt`, then
+`chezmoi apply`. The `--prompt` flag is required: plain `chezmoi init` will not
+change an answer that is already recorded, even an empty one.
+
+**`ssh -T git@github.com` fails.**
+Confirm the 1Password SSH agent is enabled and the socket path in
+`~/.ssh/config` matches what Step 4 verified.
+
+**Commits are blocked by the pre-commit hook.**
+`gitleaks` is missing or found a potential secret. The hook fails closed by
+design: `brew install gitleaks`, or move the value to a machine-local file.
+
+**Shell startup feels slow.**
+Run `scripts/bench-shell.sh`. Above ~250 ms, profile by adding
+`zmodload zsh/zprof` as the first line of `~/.zshrc` and `zprof` as the last.
+
+**Adding a new configuration variable.**
+Add a `promptStringOnce` line to `.chezmoi.toml.tmpl`, reference it as
+`{{ .yourVar }}` in any `.tmpl` file, then run `chezmoi init --prompt`.
+
+---
+
+## Credits
+
+macOS defaults originally derived from
+[mathiasbynens/dotfiles](https://github.com/mathiasbynens/dotfiles).
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE).
+MIT — see [LICENSE](LICENSE).
