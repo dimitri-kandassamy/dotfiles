@@ -1,65 +1,80 @@
-[column]
-    ui = auto
-[branch]
-    sort = -committerdate
-[tag]
-    sort = version:refname
-[diff]
-    algorithm = histogram
-    colorMoved = plain
-    mnemonicPrefix = true
-    renames = true
-[push]
-    default = simple
-    autoSetupRemote = true
-    followTags = true
-[fetch]
-    prune = true
-    pruneTags = true
-    all = true
-[help]
-    autocorrect = prompt
-[commit]
-    verbose = true
+[user]
+	name = {{ .name }}
+	email = {{ .email }}
 {{- if .sshSigningKey }}
-    gpgsign = true
+	signingkey = {{ .sshSigningKey }}
+{{- end }}
+
+[init]
+	defaultBranch = main
+[core]
+	excludesfile = ~/.gitignore
+	pager = delta
+	# Set here as well as $EDITOR, so git launched from a GUI app — which never
+	# reads ~/.zprofile — still opens VS Code rather than vi.
+	editor = code --wait
+[column]
+	ui = auto
+[branch]
+	sort = -committerdate
+[tag]
+	sort = version:refname
+[diff]
+	algorithm = histogram
+	colorMoved = plain
+	mnemonicPrefix = true
+	renames = true
+[push]
+	default = simple
+	autoSetupRemote = true
+	followTags = true
+[fetch]
+	prune = true
+	pruneTags = true
+	all = true
+[pull]
+	rebase = true
+[help]
+	autocorrect = prompt
+[commit]
+	verbose = true
+{{- if .sshSigningKey }}
+	gpgsign = true
 {{- end }}
 [rerere]
-    enabled = true
-    autoupdate = true
-[core]
-    excludesfile = ~/.gitignore
-    pager = delta
-    # Set here as well as $EDITOR, so git launched from a GUI app (which never
-    # reads ~/.zprofile) still opens VS Code rather than vi.
-    editor = code --wait
+	enabled = true
+	autoupdate = true
 [interactive]
-    diffFilter = delta --color-only
+	diffFilter = delta --color-only
 [delta]
-    navigate = true
-    side-by-side = true
-    line-numbers = true
+	navigate = true
+	side-by-side = true
+	line-numbers = true
 [merge]
-    # Show the common ancestor in conflict markers, not just the two sides
-    conflictstyle = zdiff3
+	# Show the common ancestor in conflict markers, not just the two sides.
+	conflictstyle = zdiff3
 [rebase]
-    autoSquash = true
-    autoStash = true
-    updateRefs = true
-[user]
-    email = {{ .email }}
-    name = {{ .name }}
-{{- if .sshSigningKey }}
-    signingkey = {{ .sshSigningKey }}
+	autoSquash = true
+	autoStash = true
+	updateRefs = true
+{{- if .githubUser }}
+[github]
+	user = {{ .githubUser }}
 {{- end }}
 {{- if .sshSigningKey }}
 [gpg]
-    format = ssh
+	format = ssh
 [gpg "ssh"]
-    program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
-    allowedSignersFile = ~/.config/git/allowed_signers
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+	allowedSignersFile = ~/.config/git/allowed_signers
 {{- end }}
-[github]
-    user = dimitri-kandassamy
-[init]
-	defaultBranch = main
+
+# Machine-local overrides. Not tracked by chezmoi and not committed anywhere:
+# per-client identities, url rewrites, private remotes.
+#
+# This MUST be the last thing in the file. An include is expanded where it
+# appears, and for single-valued keys the last value wins — so an include placed
+# at the top can only override the sections above it, and everything below would
+# silently win instead. git ignores a missing path, so this is safe when absent.
+[include]
+	path = ~/.config/git/local.gitconfig

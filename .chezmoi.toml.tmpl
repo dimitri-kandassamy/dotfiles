@@ -1,8 +1,15 @@
-{{- $email := promptStringOnce . "email" "Git email" "dimitri.kandassamy@gmail.com" -}}
-{{- $name := promptStringOnce . "name" "Git name" "Dimitri Kandassamy" -}}
+{{/*
+  Machine-level configuration. chezmoi renders this on `chezmoi init` and writes
+  the result to ~/.config/chezmoi/chezmoi.toml — which stays on this machine and
+  is never committed.
+*/ -}}
+{{- $name          := promptStringOnce . "name"          "Git name" "Dimitri Kandassamy" -}}
+{{- $email         := promptStringOnce . "email"         "Git email" "dimitri.kandassamy@gmail.com" -}}
+{{- $githubUser    := promptStringOnce . "githubUser"    "GitHub username (empty to skip)" "dimitri-kandassamy" -}}
 {{- $sshSigningKey := promptStringOnce . "sshSigningKey" "SSH public key for commit signing, e.g. 'ssh-ed25519 AAAA...' (empty disables signing)" "" -}}
 
 [data]
-    name = {{ $name | quote }}
-    email = {{ $email | quote }}
+    name          = {{ $name | quote }}
+    email         = {{ $email | quote }}
+    githubUser    = {{ $githubUser | quote }}
     sshSigningKey = {{ $sshSigningKey | quote }}

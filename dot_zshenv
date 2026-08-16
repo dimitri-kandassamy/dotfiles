@@ -1,0 +1,14 @@
+# Runs for every zsh invocation, login or not. Keep it to environment only —
+# anything interactive belongs in ~/.zshrc, and anything expensive belongs
+# nowhere near this file.
+
+# XDG base directories. Set explicitly rather than relying on each tool's
+# fallback, so ~/.config and ~/.cache are the only places config and state land.
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+# Machine-local environment that must not be committed: tokens, per-machine
+# paths, anything experimental. Created by hand, never tracked.
+[[ -f "$HOME/.zshenv.local" ]] && source "$HOME/.zshenv.local"
