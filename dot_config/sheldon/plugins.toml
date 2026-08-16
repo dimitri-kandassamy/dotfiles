@@ -1,7 +1,52 @@
+# Load order below is the runtime order, and it matters.
+#
+#   zsh-defer        sourced eagerly — it defines the function everything else uses
+#   zsh-completions  fpath only, no sourcing, so ~/.zshrc's compinit sees it
+#   fzf-tab          deferred; needs compinit to have run, which it has by then
+#   autosuggestions  deferred; only needed once you start typing
+#   syntax highlight deferred, and last — it wraps the line editor, so anything
+#                    that also wraps ZLE must already be in place
+#
+# Every plugin is pinned to an explicit commit. This file is the lockfile —
+# `sheldon lock` writes plugins.lock into sheldon's *config* directory
+# (~/.config/sheldon/), which is a chezmoi target, not this source tree, so it
+# can never be committed from here. Pinning `rev` is what actually makes a
+# rebuild reproducible, and it keeps the pins reviewable in a diff.
+#
+# These five repos are sourced into every interactive shell, and two of them
+# wrap ZLE — they see every keystroke. Unpinned, that is upstream HEAD with no
+# review step. Bump deliberately:
+#
+#     git ls-remote https://github.com/<owner>/<repo> HEAD
+#
+# Pins last reviewed 2026-08-16.
+
 shell = "zsh"
+
+[plugins.zsh-defer]
+github = "romkatv/zsh-defer"
+rev = "53a26e287fbbe2dcebb3aa1801546c6de32416fa"
+
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+rev = "2798b16c74f80cda2094cfed4516db8048d3e6ca"
+apply = ["fpath"]
+
+[plugins.fzf-tab]
+github = "Aloxaf/fzf-tab"
+rev = "24105b15714bfec37989ed5c5b6e60f572253019"
+apply = ["defer"]
 
 [plugins.zsh-autosuggestions]
 github = "zsh-users/zsh-autosuggestions"
+rev = "85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5"
+apply = ["defer"]
 
 [plugins.fast-syntax-highlighting]
 github = "zdharma-continuum/fast-syntax-highlighting"
+rev = "3d574ccf48804b10dca52625df13da5edae7f553"
+apply = ["defer"]
+
+[templates]
+defer = """{% for file in files %}zsh-defer source "{{ file }}"
+{% endfor %}"""
