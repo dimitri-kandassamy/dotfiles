@@ -1,32 +1,28 @@
-# Mac
+# This repo's own ignore list — not the global one applied to every repo.
+# That is dot_gitignore, which chezmoi applies to ~/.gitignore.
+
+# Anything named *.local is by convention machine-local and untracked.
+*.local
+*.local.*
+
+# chezmoi's rendered state, if anyone ever runs chezmoi inside the source dir.
+.chezmoistate.boltdb
+
+# Secrets, in case something lands here by accident. The pre-commit hook is the
+# real defence; this is a second line.
+*.key
+*.pem
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+
+# macOS
 .DS_Store
+._*
 
-# VSCode
-.vscode/
-
-# npm
-npm-debug.log
-
-# yarn
-yarn-error.log
-
-# VIM
-*.un~
-Session.vim
-.netrwhist
-*~
+# Editors
+.idea/
 *.swp
-.lvimrc
-
-# localhistory
-.history
-
-# Over-arching stuff
-*.ignored/
-*.ignored.*
-
-# git
-*.patch
-
-# eslint
-.eslintcache
+*~
