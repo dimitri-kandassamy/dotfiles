@@ -21,7 +21,14 @@ else
 fi
 export VISUAL="$EDITOR"
 
+export PAGER="less"
+export LESS="-FRX"
+
 # 1Password SSH agent — keys are served from the vault, never written to disk.
 # ~/.ssh/config points ssh itself at the socket (so VS Code and other GUI apps
 # work too); this covers tools that read SSH_AUTH_SOCK directly, e.g. `ssh-add -l`.
 export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
+# User-installed binaries. `uv tool install` puts its shims here, so without
+# this the uv aliases in ~/.aliases only half-work.
+export PATH="$HOME/.local/bin:$PATH"

@@ -2,5 +2,15 @@
 # rather than only exporting SSH_AUTH_SOCK in the shell means GUI apps and
 # non-interactive shells (VS Code's built-in git, LaunchAgents, cron) get the
 # agent too — they never read ~/.zshrc.
+#
+# Per-host settings go in ~/.ssh/config.local, which the Include below picks up
+# and which is never tracked. Include must come FIRST: ssh takes the first value
+# it sees for any given keyword, so earlier blocks win and a `Host *` block
+# placed above an Include would swallow everything.
+Include ~/.ssh/config.local
+
 Host *
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  AddKeysToAgent yes
+  ServerAliveInterval 60
+  ServerAliveCountMax 3
