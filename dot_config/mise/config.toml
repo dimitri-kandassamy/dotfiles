@@ -1,4 +1,20 @@
+# Global tool versions. A project's own .mise.toml (or .nvmrc / .python-version,
+# which mise also reads) overrides these — this is only the fallback for a
+# directory that pins nothing.
+#
+# Every entry is pinned to a major rather than a floating alias. `lts` and
+# `latest` both move you to a new major without asking, which turns a rebuild
+# six months from now into a different machine. Patch releases within a pinned
+# line still come for free. Bump these on purpose.
+
+# Verified 2026-08-16: node 24 is the current LTS line (Krypton); python 3.14 is
+# released but 3.13 is the conservative default while packages catch up;
+# go 1.26 is current.
 [tools]
-node = "lts"
-python = "3.12"
-go = "latest"
+node = "24"
+python = "3.13"
+go = "1.26"
+
+[settings]
+# Experimental features stay off; nothing here depends on one.
+experimental = false

@@ -1,4 +1,7 @@
 # Sourced by ~/.zshrc — not executed, so no shebang.
+#
+# Machine-local or per-client aliases belong in ~/.zshrc.local, which is never
+# tracked.
 
 # project shortcuts
 notespath="$HOME/Code/dimitri-kandassamy/notes"
@@ -8,10 +11,34 @@ alias cookbook='code $cookbookpath'
 
 # modern cli replacements
 alias ls='eza --icons --group-directories-first'
-alias ll='eza -la --icons --git'
-alias lt='eza --tree --icons'
+alias ll='eza -la --icons --git --group-directories-first'
+alias lt='eza --tree --level=2 --icons'
 alias cat='bat --paging=never'
-alias lg='lazygit'
 
-# kubernetes shortcuts
+# git
+alias lg='lazygit'
+alias gs='git status --short --branch'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate -20'
+
+# python — uv fronts everything
+alias uvr='uv run'
+alias uvs='uv sync'
+alias venv='uv venv && source .venv/bin/activate'
+
+# javascript
+alias pn='pnpm'
+alias pnx='pnpm dlx'
+
+# kubernetes
 alias k='kubectl'
+alias kx='kubectl config use-context'
+alias kns='kubectl config set-context --current --namespace'
+
+# containers — colima hosts the docker daemon; these are the two commands you
+# actually need day to day.
+alias cup='colima start'
+alias cdown='colima stop'
+
+# reload the shell after editing config
+alias reload='exec zsh'

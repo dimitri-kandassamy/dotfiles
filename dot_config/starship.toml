@@ -4,6 +4,11 @@
 # Two-line prompt: info on top, input arrow below.
 add_newline = true
 
+# Cap how long any single module may take. Without this a slow `git status` in a
+# large repo hangs the prompt — more likely to bite on this machine than on
+# faster hardware.
+command_timeout = 500
+
 format = """
 $directory\
 $git_branch\
