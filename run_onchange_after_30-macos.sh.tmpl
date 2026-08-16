@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Applies the macOS system preferences. Keyed on the hash of dot_macos rather
-# than the Brewfile: this script prompts for sudo and ends by killing Dock,
-# Finder and Chrome, so it must not fire every time a package is added.
+# than the Brewfile: this script prompts for sudo and ends by restarting the
+# Dock and Finder, so it must not fire every time a package is added.
+#
+# Runs last (30-) so the apps it configures are already installed by 10-.
 #
 # dot_macos hash: {{ include "dot_macos" | sha256sum }}
 
