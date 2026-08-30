@@ -39,9 +39,19 @@ tamasfe.even-better-toml
 eamodio.gitlens
 
 # --- containers / k8s
-ms-azuretools.vscode-docker
+# Container Tools, not the old Docker extension: microsoft/vscode-docker is
+# archived and ms-azuretools.vscode-docker now redirects here. Same features,
+# plus podman.
+ms-azuretools.vscode-containers
 ms-kubernetes-tools.vscode-kubernetes-tools
 ms-vscode-remote.remote-containers
+ms-vscode-remote.remote-ssh
+
+# --- astro
+astro-build.astro-vscode
+
+# --- shell
+timonwong.shellcheck
 
 # --- general
 editorconfig.editorconfig
