@@ -4,6 +4,10 @@ macOS configuration managed with [chezmoi](https://www.chezmoi.io).
 
 **Target:** MacBook Pro (Intel / x86_64), macOS 26 Tahoe. Homebrew prefix `/usr/local`.
 
+Last verified against macOS 26.6.2 (build 25G83) on 2026-08-30 by rendering every
+managed file into a sandbox `$HOME` — 16 files, no template errors, `~/.ssh` at
+`0700` and `~/.ssh/config` at `0600`.
+
 ---
 
 ## Overview
@@ -15,7 +19,7 @@ macOS configuration managed with [chezmoi](https://www.chezmoi.io).
 | Terminal   | Ghostty (primary), iTerm2 (fallback)                                                                 |
 | Editor     | VS Code — settings, keybindings and extensions tracked                                               |
 | Containers | colima + docker CLI                                                                                  |
-| Cloud      | terraform, kubectl, k9s                                                                              |
+| Cloud      | terraform, kubectl, helm, kind, k9s, azure-cli                                                       |
 | Secrets    | 1Password SSH agent for auth and commit signing                                                      |
 | CLI        | bat, eza, fd, ripgrep, fzf, zoxide, jq, yq, delta, lazygit, gh                                       |
 
@@ -25,15 +29,65 @@ macOS configuration managed with [chezmoi](https://www.chezmoi.io).
 
 Complete all of these **before** starting the installation.
 
-### 1. Back up the old machine
+### 1. Back up what these dotfiles do not carry
 
-Confirm you can restore anything not in a git remote — SSH keys are in 1Password,
-but local-only work is not.
+chezmoi restores the tracked configuration and nothing else. Everything below is
+lost on wipe and exists nowhere else, so work through it before the disk goes.
 
-### 2. Install macOS and complete Setup Assistant
+**Uncommitted work.** Commits already on a remote are safe; working-tree changes
+are not. Sweep every checkout at once:
 
-Create your user account and connect to a network. Skip Migration Assistant if
-you want a genuinely clean install.
+```bash
+find ~/Code -name .git -maxdepth 6 | sed 's|/.git$||' | while read -r r; do
+  [ -n "$(git -C "$r" status --porcelain)" ] && echo "dirty: $r"
+  [ -n "$(git -C "$r" stash list)" ]         && echo "stash: $r"
+  n=$(git -C "$r" rev-list --count HEAD --not --remotes 2>/dev/null)
+  [ "${n:-0}" -gt 0 ]                        && echo "unpushed ($n): $r"
+done
+```
+
+**Application data outside `~/.config`.** Anything a tool keeps in `~/Library`
+or a dotfile directory of its own is not tracked here. Check the tools you would
+miss before assuming they rebuild themselves.
+
+**Not worth backing up.** The machine-local override layer (`~/.zshenv.local`,
+`~/.zshrc.local`, `~/.ssh/config.local`, `~/.config/git/local.gitconfig`) is
+unused as of the last rebuild; `~/.config/gh`, `flutter` and `uv` all rebuild
+themselves on first run. The GitHub token lives in the login keychain, so expect
+one `gh auth login` on the new machine.
+
+### 2. Erase and reinstall macOS
+
+This machine is a MacBookPro16,2 with an Apple T2 Security Chip, so the
+supported path is **Erase All Content and Settings** — it signs you out of
+iCloud, clears Activation Lock and Find My, and erases the data volume in one
+step. Apple recommends it over erasing manually in Disk Utility.
+
+> **System Settings → General → Transfer or Reset → Erase All Content and
+> Settings**
+
+The Mac restarts into Setup Assistant. That is enough for a clean start and
+keeps the currently installed macOS.
+
+To reinstall the operating system itself as well — a corrupted install, or a
+deliberate return to a stock system volume — use Recovery instead:
+
+1. Sign out of iCloud first (**System Settings → Apple Account → Sign Out**), or
+   Activation Lock will strand the machine.
+2. Power on and immediately hold **Command-R** until the Apple logo appears.
+   If the local Recovery partition is unusable, **Option-Command-R** boots
+   Internet Recovery instead.
+3. **Disk Utility → View → Show All Devices**, select the internal *container*
+   rather than the volume inside it, then **Erase** — format APFS, scheme GUID
+   Partition Map.
+4. Quit Disk Utility and choose **Reinstall macOS**.
+
+Either way, connect to a network and create your user account when Setup
+Assistant asks. Skip Migration Assistant — restoring the old system is the thing
+this rebuild exists to avoid.
+
+macOS 26 Tahoe is the last release supporting Intel, so this is the terminal
+version for this machine. Nothing here needs to change because of that yet.
 
 ### 3. Sign in to the App Store
 
@@ -72,6 +126,12 @@ You will be prompted for four values:
 | SSH signing key | Your existing public key, `ssh-ed25519 AAAA…` — see below |
 
 Copy the GitHub signing key from [github.com/settings/keys](https://github.com/settings/keys).
+Do this before wiping the old machine — 1Password is not installed yet at this
+point, so the key has to come from somewhere else.
+
+Do not leave the signing key blank to "fix it later". An empty answer is still a
+recorded answer, and plain `chezmoi init` will not re-ask it; commits then go
+unsigned until you notice. See the troubleshooting entry if that happens.
 
 ### Step 3 — Wait for the install scripts
 
@@ -92,8 +152,14 @@ Allow 30–60 minutes.
 3. Confirm your key exists as an **SSH Key** item (not a note or password), and
    that it is the same key you pasted in Step 2.
 4. On [github.com/settings/keys](https://github.com/settings/keys), confirm the
-   key is registered as an _Authentication key_ and as a
-   _Signing key_.
+   key appears in **both** lists — once as an _Authentication key_, once as a
+   _Signing key_. GitHub tracks the two registrations independently, and one key
+   in one list is the common mistake: authentication works, so nothing looks
+   wrong, and commits show up unverified weeks later.
+
+Until this step is done every `git commit` fails: the applied `~/.gitconfig`
+sets `gpgsign = true` and points at `op-ssh-sign`, which is not reachable yet.
+That failure is expected, not a broken install.
 
 Verify the two paths:
 
@@ -127,9 +193,36 @@ chezmoi cd
 exit
 ```
 
-### Step 7 — Restart
+### Step 7 — Restore what the dotfiles do not carry
+
+Re-clone your repositories, restore the uncommitted work set aside in the
+Prerequisites, and sign the GitHub CLI back in — its token was in the login
+keychain, not in this repo:
+
+```bash
+gh auth login
+```
+
+Then restore the uncommitted work you set aside, and re-clone your repositories.
+
+### Step 8 — Restart
 
 Some macOS defaults require a logout or restart to take effect.
+
+---
+
+## Deliberately not carried over
+
+Not oversights — decisions, recorded so a future rebuild does not try to "fix"
+them.
+
+| Dropped                            | Why                                                                                                        |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| On-disk `~/.ssh/id_ed25519`        | Superseded by the 1Password agent key. The old key is not registered on GitHub — it fails `ssh -T` outright |
+| `UseKeychain` / `IdentityFile`     | The agent serves every key; nothing is read from disk, so neither directive belongs in `~/.ssh/config`     |
+| Docker Desktop, `nvm`, `pyenv`     | Replaced by colima, and by mise for every language runtime                                                 |
+| `black`, `flake8`, `isort`         | Replaced by `ruff` as both linter and formatter                                                            |
+| Azure VS Code extension pack       | Thirteen extensions, all startup cost; install per project if a project needs them                         |
 
 ---
 
