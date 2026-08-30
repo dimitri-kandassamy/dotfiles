@@ -22,6 +22,11 @@ tap "hashicorp/tap"
 brew "mise"          # Node / Python / Go versions, per project via .mise.toml
 brew "uv"            # Python packages, venvs and tools — replaces pip/pipx/poetry
 
+# The tool that installs everything else. Bootstrapped by hand in README step 2,
+# but listed here so `brew bundle` owns its upgrades from then on — otherwise
+# chezmoi is the one binary on the machine that never gets updated.
+brew "chezmoi"
+
 # ----------------------------------------------------------------------- shell
 brew "sheldon"       # zsh plugin manager (Rust, lockfile-backed)
 brew "starship"      # prompt
@@ -38,6 +43,9 @@ brew "hashicorp/tap/terraform"
 # which every other tool here silently depended on
 brew "kubernetes-cli"
 brew "k9s"
+brew "helm"          # chart tooling; kubectl alone can't install anything real
+brew "kind"          # throwaway clusters in the colima VM, no cloud round-trip
+brew "azure-cli"     # `az` — the Azure DevOps reporting scripts shell out to it
 
 # ------------------------------------------------------------------ containers
 # colima replaces Docker Desktop (no licence, no GUI daemon). `colima start`
@@ -77,6 +85,11 @@ brew "watchexec"     # run a command when files change
 # Scans staged changes for secrets before they reach a commit. The repo's own
 # pre-commit hook calls this; see scripts/install-hooks.sh.
 brew "gitleaks"
+
+# ------------------------------------------------------------------ shell lint
+# This repo is seven bash scripts, three of which run unattended on a fresh
+# machine with `set -euo pipefail` and no one watching. Lint them.
+brew "shellcheck"
 
 # --------------------------------------------------------- mac app store cli
 brew "mas"
