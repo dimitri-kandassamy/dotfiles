@@ -20,7 +20,7 @@ set -euo pipefail
 # one-line edit far from anything you'd think of as risky — and it's about to
 # rewrite ~80 system preferences and restart Dock/Finder/Activity Monitor.
 # Confirm before that happens rather than finding out after the fact.
-read -r -p "Apply macOS system preferences now? [y/N] " reply
+read -r -p "Apply macOS system preferences now? [y/N] " reply || reply=""
 [[ "$reply" =~ ^[Yy]$ ]] || { echo "Skipped."; exit 0; }
 
 echo "Applying macOS preferences…"
