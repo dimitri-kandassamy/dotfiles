@@ -7,6 +7,11 @@
 
 set -euo pipefail
 
+# Chezmoi re-runs this whenever the Brewfile changes, which can be for a single
+# added or removed line. Confirm before it installs/upgrades everything in it.
+read -r -p "Install/update Homebrew packages from Brewfile now? [y/N] " reply
+[[ "$reply" =~ ^[Yy]$ ]] || { echo "Skipped."; exit 0; }
+
 BREWFILE="{{ .chezmoi.sourceDir }}/Brewfile"
 
 if ! command -v brew &>/dev/null; then
