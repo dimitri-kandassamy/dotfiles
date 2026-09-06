@@ -14,7 +14,6 @@ ms-python.debugpy
 
 # --- typescript / react
 biomejs.biome
-dbaeumer.vscode-eslint
 bradlc.vscode-tailwindcss
 
 # --- .NET / C#
