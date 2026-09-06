@@ -5,7 +5,7 @@
 # and `ghostty +show-config --default --docs` for every option with its docs.
 
 # ------------------------------------------------------------------ appearance
-theme = catppuccin-mocha
+theme = Catppuccin Mocha
 font-family = "JetBrainsMono Nerd Font"
 font-size = 14
 font-thicken = true

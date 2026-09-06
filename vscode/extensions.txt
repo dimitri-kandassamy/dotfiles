@@ -38,11 +38,6 @@ tamasfe.even-better-toml
 # --- git
 eamodio.gitlens
 
-# --- containers / k8s
-ms-azuretools.vscode-docker
-ms-kubernetes-tools.vscode-kubernetes-tools
-ms-vscode-remote.remote-containers
-
 # --- general
 editorconfig.editorconfig
 usernamehw.errorlens
