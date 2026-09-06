@@ -20,14 +20,14 @@ tap "hashicorp/tap"
 
 # ---------------------------------------------------------------- version mgmt
 brew "mise"          # Node / Python / Go versions, per project via .mise.toml
-brew "uv"            # Python packages, venvs and tools — replaces pip/pipx/poetry
+#brew "uv"            # Python packages, venvs and tools — replaces pip/pipx/poetry
 
 # ----------------------------------------------------------------------- shell
 brew "sheldon"       # zsh plugin manager (Rust, lockfile-backed)
 brew "starship"      # prompt
 
 # ------------------------------------------------------------------ python dev
-brew "ruff"          # linter + formatter — replaces black, flake8, isort
+#brew "ruff"          # linter + formatter — replaces black, flake8, isort
 
 # -------------------------------------------------------------- javascript dev
 brew "pnpm"          # content-addressed store; node itself comes from mise
@@ -59,7 +59,7 @@ brew "lazygit"
 brew "hugo"
 brew "jq"
 brew "yq"
-brew "pandoc"
+#brew "pandoc"
 brew "scc"
 brew "tree"
 
@@ -109,6 +109,3 @@ cask "vlc"
 # ------------------------------------------------------- mac app store apps
 # IDs from `mas list`.
 mas "Xcode", id: 497799835
-mas "Numbers", id: 409203825
-mas "iMovie", id: 408981434
-# dropped: Evernote (406056744) — no longer used
