@@ -16,7 +16,22 @@
 
 set -euo pipefail
 
+# Chezmoi re-runs this whole file whenever it changes at all — even for a
+# one-line edit far from anything you'd think of as risky — and it's about to
+# rewrite ~80 system preferences and restart Dock/Finder/Activity Monitor.
+# Confirm before that happens rather than finding out after the fact.
+read -r -p "Apply macOS system preferences now? [y/N] " reply
+[[ "$reply" =~ ^[Yy]$ ]] || { echo "Skipped."; exit 0; }
+
 echo "Applying macOS preferences…"
+
+# A single `defaults write` against a protected domain (com.apple.universalaccess
+# needs an Accessibility/TCC grant this script can't obtain non-interactively,
+# for instance) used to fail under set -e and abort everything after it —
+# including the Dock section, which is how the Dock settings below ended up
+# silently never applied and had to be set by hand instead. Report and
+# continue instead of aborting the whole file over one key.
+dw() { defaults "$@" || echo "  ⚠ failed (continuing): defaults $*" >&2; }
 
 # Close System Settings so it can't overwrite what we're about to change.
 osascript -e 'tell application "System Settings" to quit' 2>/dev/null || true
@@ -32,28 +47,28 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" 2>/dev/null || exit; done 2>
 # the machine *feels*, which matters more here than on newer hardware.
 
 # Window open/close animations. The most noticeable change on the list.
-defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
+dw write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
 
 # Sheet and popover animation duration.
-defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
+dw write NSGlobalDomain NSWindowResizeTime -float 0.001
 
 # Column-view and scroll animations in Finder and open/save panels.
-defaults write NSGlobalDomain NSScrollAnimationEnabled -bool false
+dw write NSGlobalDomain NSScrollAnimationEnabled -bool false
 
 # Rubber-band overscroll. Removing it makes long lists feel more direct.
-defaults write NSGlobalDomain NSScrollViewRubberbanding -bool false
+dw write NSGlobalDomain NSScrollViewRubberbanding -bool false
 
 # Expand save and print panels by default — two fewer clicks, every time.
-defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
-defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
-defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
-defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+dw write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+dw write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+dw write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+dw write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
 # Save to disk, not iCloud, by default.
-defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+dw write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
 
 # Quit the printer app once its queue empties.
-defaults write com.apple.print.PrintingPrefs "Quit When Finished" -bool true
+dw write com.apple.print.PrintingPrefs "Quit When Finished" -bool true
 
 ###############################################################################
 # Power and boot                                                              #
@@ -76,43 +91,39 @@ fi
 
 # Fastest key repeat macOS exposes, and the shortest delay before it starts.
 # KeyRepeat=1 is faster than the System Settings slider can go.
-defaults write NSGlobalDomain KeyRepeat -int 1
-defaults write NSGlobalDomain InitialKeyRepeat -int 10
+dw write NSGlobalDomain KeyRepeat -int 1
+dw write NSGlobalDomain InitialKeyRepeat -int 10
 
 # Hold a key to repeat it rather than opening the accent picker. Required for
 # held-key navigation in any modal editor.
-defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+dw write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
 # Full keyboard access: Tab reaches every control, not just text fields.
-defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+dw write NSGlobalDomain AppleKeyboardUIMode -int 3
 
 # Text substitutions that corrupt code and commit messages.
-defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
-defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
-defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
-defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
-defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+dw write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+dw write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+dw write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+dw write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
+dw write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 
 ###############################################################################
 # Trackpad and mouse                                                          #
 ###############################################################################
 
 # Tap to click, for this user and at the login screen.
-defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
-defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
-defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+dw write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+dw write com.apple.AppleMultitouchTrackpad Clicking -bool true
+dw -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+dw write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
 # Three-finger drag.
-defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -int 1
-defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -int 1
+dw write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -int 1
+dw write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -int 1
 
 # Tracking speed. 3.0 is above the System Settings maximum.
-defaults write NSGlobalDomain com.apple.trackpad.scaling -float 3.0
-
-# Ctrl + scroll wheel zooms the screen, following the pointer.
-defaults write com.apple.universalaccess closeViewScrollWheelToggle -bool true
-defaults write com.apple.universalaccess HIDScrollZoomModifierMask -int 262144
+dw write NSGlobalDomain com.apple.trackpad.scaling -float 3.0
 
 ###############################################################################
 # Dock — minimal, running apps only, no delay                                 #
@@ -120,101 +131,99 @@ defaults write com.apple.universalaccess HIDScrollZoomModifierMask -int 262144
 
 # Auto-hide with zero show delay and a near-instant animation. The default 0.5s
 # delay is what makes the stock Dock feel slow, and it was missing before.
-defaults write com.apple.dock autohide -bool true
-defaults write com.apple.dock autohide-delay -float 0
-defaults write com.apple.dock autohide-time-modifier -float 0.15
+dw write com.apple.dock autohide -bool true
+dw write com.apple.dock autohide-delay -float 0
+dw write com.apple.dock autohide-time-modifier -float 0.15
 
-# No pinned apps: the Dock shows what is running and nothing else. Spotlight and
-# the terminal are how apps get launched here.
-defaults write com.apple.dock persistent-apps -array
-defaults write com.apple.dock static-only -bool true
-defaults write com.apple.dock show-recents -bool false
+# Pinned apps behave normally (Keep in Dock persists across restarts).
+dw write com.apple.dock static-only -bool false
+dw write com.apple.dock show-recents -bool false
 
-defaults write com.apple.dock tilesize -int 16
-defaults write com.apple.dock magnification -bool false
-defaults write com.apple.dock mineffect -string "scale"        # cheaper than genie
-defaults write com.apple.dock minimize-to-application -bool true
-defaults write com.apple.dock launchanim -bool false           # no bounce on launch
-defaults write com.apple.dock expose-animation-duration -float 0.1
-defaults write com.apple.dock springboard-show-duration -float 0.1
-defaults write com.apple.dock springboard-hide-duration -float 0.1
-defaults write com.apple.dock showhidden -bool true            # dim hidden apps
-defaults write com.apple.dock show-process-indicators -bool true
-defaults write com.apple.dock mouse-over-hilite-stack -bool true
-defaults write com.apple.dock enable-spring-load-actions-on-all-items -bool true
+dw write com.apple.dock tilesize -int 16
+dw write com.apple.dock magnification -bool false
+dw write com.apple.dock mineffect -string "scale"        # cheaper than genie
+dw write com.apple.dock minimize-to-application -bool true
+dw write com.apple.dock launchanim -bool false           # no bounce on launch
+dw write com.apple.dock expose-animation-duration -float 0.1
+dw write com.apple.dock springboard-show-duration -float 0.1
+dw write com.apple.dock springboard-hide-duration -float 0.1
+dw write com.apple.dock showhidden -bool true            # dim hidden apps
+dw write com.apple.dock show-process-indicators -bool true
+dw write com.apple.dock mouse-over-hilite-stack -bool true
+dw write com.apple.dock enable-spring-load-actions-on-all-items -bool true
 
 # Mission Control: don't reorder spaces by use — stable positions mean muscle
 # memory works. And don't switch spaces just because an app has a window there.
-defaults write com.apple.dock mru-spaces -bool false
-defaults write NSGlobalDomain AppleSpacesSwitchOnActivate -bool false
+dw write com.apple.dock mru-spaces -bool false
+dw write NSGlobalDomain AppleSpacesSwitchOnActivate -bool false
 
 # Hot corners, all requiring Cmd (modifier 1048576) so they cannot fire by
 # accident — which is the usual reason to turn them off entirely.
 #   top-left / top-right : Mission Control (4)
 #   bottom-left          : application windows (5)
 #   bottom-right         : put display to sleep (10)
-defaults write com.apple.dock wvous-tl-corner -int 4
-defaults write com.apple.dock wvous-tl-modifier -int 1048576
-defaults write com.apple.dock wvous-tr-corner -int 4
-defaults write com.apple.dock wvous-tr-modifier -int 1048576
-defaults write com.apple.dock wvous-bl-corner -int 5
-defaults write com.apple.dock wvous-bl-modifier -int 1048576
-defaults write com.apple.dock wvous-br-corner -int 10
-defaults write com.apple.dock wvous-br-modifier -int 1048576
+dw write com.apple.dock wvous-tl-corner -int 4
+dw write com.apple.dock wvous-tl-modifier -int 1048576
+dw write com.apple.dock wvous-tr-corner -int 4
+dw write com.apple.dock wvous-tr-modifier -int 1048576
+dw write com.apple.dock wvous-bl-corner -int 5
+dw write com.apple.dock wvous-bl-modifier -int 1048576
+dw write com.apple.dock wvous-br-corner -int 10
+dw write com.apple.dock wvous-br-modifier -int 1048576
 
 ###############################################################################
 # Finder                                                                      #
 ###############################################################################
 
-defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-defaults write com.apple.finder AppleShowAllFiles -bool true
-defaults write com.apple.finder ShowPathbar -bool true
-defaults write com.apple.finder ShowStatusBar -bool true
-defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
-defaults write com.apple.finder QuitMenuItem -bool true
+dw write NSGlobalDomain AppleShowAllExtensions -bool true
+dw write com.apple.finder AppleShowAllFiles -bool true
+dw write com.apple.finder ShowPathbar -bool true
+dw write com.apple.finder ShowStatusBar -bool true
+dw write com.apple.finder _FXShowPosixPathInTitle -bool true
+dw write com.apple.finder QuitMenuItem -bool true
 
 # Column view everywhere, sorted with folders first.
-defaults write com.apple.finder FXPreferredViewStyle -string "clmv"
-defaults write com.apple.finder _FXSortFoldersFirst -bool true
+dw write com.apple.finder FXPreferredViewStyle -string "clmv"
+dw write com.apple.finder _FXSortFoldersFirst -bool true
 
 # Search the current folder, not the whole Mac.
-defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+dw write com.apple.finder FXDefaultSearchScope -string "SCcf"
 
 # No warnings that are always dismissed anyway.
-defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
-defaults write com.apple.finder WarnOnEmptyTrash -bool false
+dw write com.apple.finder FXEnableExtensionChangeWarning -bool false
+dw write com.apple.finder WarnOnEmptyTrash -bool false
 
 # No .DS_Store on network or USB volumes — a genuine courtesy on shared drives.
-defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
-defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+dw write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+dw write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
 # New windows open in the home directory.
-defaults write com.apple.finder NewWindowTarget -string "PfHm"
-defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
+dw write com.apple.finder NewWindowTarget -string "PfHm"
+dw write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
 
 # Desktop shows removable media but not internal or network volumes.
-defaults write com.apple.finder ShowExternalHardDrivesOnDesktop -bool true
-defaults write com.apple.finder ShowRemovableMediaOnDesktop -bool true
-defaults write com.apple.finder ShowHardDrivesOnDesktop -bool false
-defaults write com.apple.finder ShowMountedServersOnDesktop -bool false
+dw write com.apple.finder ShowExternalHardDrivesOnDesktop -bool true
+dw write com.apple.finder ShowRemovableMediaOnDesktop -bool true
+dw write com.apple.finder ShowHardDrivesOnDesktop -bool false
+dw write com.apple.finder ShowMountedServersOnDesktop -bool false
 
 # Spring-loaded folders, with a short delay.
-defaults write NSGlobalDomain com.apple.springing.enabled -bool true
-defaults write NSGlobalDomain com.apple.springing.delay -float 0.2
+dw write NSGlobalDomain com.apple.springing.enabled -bool true
+dw write NSGlobalDomain com.apple.springing.delay -float 0.2
 
 # Open a window when a disk image or removable disk is mounted.
-defaults write com.apple.frameworks.diskimages auto-open-ro-root -bool true
-defaults write com.apple.frameworks.diskimages auto-open-rw-root -bool true
-defaults write com.apple.finder OpenWindowForNewRemovableDisk -bool true
+dw write com.apple.frameworks.diskimages auto-open-ro-root -bool true
+dw write com.apple.frameworks.diskimages auto-open-rw-root -bool true
+dw write com.apple.finder OpenWindowForNewRemovableDisk -bool true
 
 # Expand the Get Info panes that are actually useful.
-defaults write com.apple.finder FXInfoPanesExpanded -dict \
+dw write com.apple.finder FXInfoPanesExpanded -dict \
   General -bool true \
   OpenWith -bool true \
   Privileges -bool true
 
 # Browse all network interfaces, and unhide the two directories macOS hides.
-defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
+dw write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
 chflags nohidden ~/Library
 sudo chflags nohidden /Volumes
 
@@ -224,19 +233,19 @@ sudo chflags nohidden /Volumes
 
 # Out of ~/Desktop, which is where they used to pile up.
 mkdir -p "${HOME}/Pictures/Screenshots"
-defaults write com.apple.screencapture location -string "${HOME}/Pictures/Screenshots"
-defaults write com.apple.screencapture type -string "png"
-defaults write com.apple.screencapture disable-shadow -bool true
+dw write com.apple.screencapture location -string "${HOME}/Pictures/Screenshots"
+dw write com.apple.screencapture type -string "png"
+dw write com.apple.screencapture disable-shadow -bool true
 # Skip the floating thumbnail, which delays the file landing on disk.
-defaults write com.apple.screencapture show-thumbnail -bool false
+dw write com.apple.screencapture show-thumbnail -bool false
 
 ###############################################################################
 # Security                                                                    #
 ###############################################################################
 
 # Require the password immediately after sleep or screensaver.
-defaults write com.apple.screensaver askForPassword -int 1
-defaults write com.apple.screensaver askForPasswordDelay -int 0
+dw write com.apple.screensaver askForPassword -int 1
+dw write com.apple.screensaver askForPasswordDelay -int 0
 
 # Deliberately NOT set here: `LSQuarantine -bool false`, which suppresses the
 # "downloaded from the internet" prompt. Gatekeeper would still apply, but the
@@ -246,12 +255,12 @@ defaults write com.apple.screensaver askForPasswordDelay -int 0
 
 # Keep software updates automatic. Security updates are the one category where
 # "remind me later" is a genuinely bad default.
-defaults write com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true
-defaults write com.apple.SoftwareUpdate ScheduleFrequency -int 1
-defaults write com.apple.SoftwareUpdate AutomaticDownload -int 1
-defaults write com.apple.SoftwareUpdate CriticalUpdateInstall -int 1
-defaults write com.apple.SoftwareUpdate ConfigDataInstall -int 1
-defaults write com.apple.commerce AutoUpdate -bool true
+dw write com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true
+dw write com.apple.SoftwareUpdate ScheduleFrequency -int 1
+dw write com.apple.SoftwareUpdate AutomaticDownload -int 1
+dw write com.apple.SoftwareUpdate CriticalUpdateInstall -int 1
+dw write com.apple.SoftwareUpdate ConfigDataInstall -int 1
+dw write com.apple.commerce AutoUpdate -bool true
 
 ###############################################################################
 # Terminals                                                                   #
@@ -263,52 +272,52 @@ defaults write com.apple.commerce AutoUpdate -bool true
 # iTerm2 is the fallback. Point it at the chezmoi-managed settings folder rather
 # than its own prefs domain. Quit iTerm2 before this takes effect: it rewrites
 # its prefs on exit.
-defaults write com.googlecode.iterm2 PrefsCustomFolder -string "${HOME}/.config/iterm2"
-defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+dw write com.googlecode.iterm2 PrefsCustomFolder -string "${HOME}/.config/iterm2"
+dw write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
 
 # Terminal.app is barely used, but UTF-8 and secure keyboard entry are cheap.
-defaults write com.apple.terminal StringEncodings -array 4
-defaults write com.apple.Terminal SecureKeyboardEntry -bool true
+dw write com.apple.terminal StringEncodings -array 4
+dw write com.apple.Terminal SecureKeyboardEntry -bool true
 
 ###############################################################################
 # Misc                                                                        #
 ###############################################################################
 
 # Crash reporter as a notification rather than a modal dialog.
-defaults write com.apple.CrashReporter UseUNC -int 1
+dw write com.apple.CrashReporter UseUNC -int 1
 
 # Battery percentage in the menu bar.
-defaults -currentHost write com.apple.controlcenter BatteryShowPercentage -bool true
+dw -currentHost write com.apple.controlcenter BatteryShowPercentage -bool true
 
 # Reveal IP, hostname and OS version by clicking the clock on the login screen.
-sudo defaults write /Library/Preferences/com.apple.loginwindow AdminHostInfo HostName
+sudo defaults write /Library/Preferences/com.apple.loginwindow AdminHostInfo HostName || echo "  ⚠ failed (continuing): sudo defaults write .../loginwindow AdminHostInfo" >&2
 
 # Don't offer every new external disk as a Time Machine target.
-defaults write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
+dw write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
 
 # Activity Monitor: open the main window, show all processes, sort by CPU.
-defaults write com.apple.ActivityMonitor OpenMainWindow -bool true
-defaults write com.apple.ActivityMonitor ShowCategory -int 0
-defaults write com.apple.ActivityMonitor SortColumn -string "CPUUsage"
-defaults write com.apple.ActivityMonitor SortDirection -int 0
+dw write com.apple.ActivityMonitor OpenMainWindow -bool true
+dw write com.apple.ActivityMonitor ShowCategory -int 0
+dw write com.apple.ActivityMonitor SortColumn -string "CPUUsage"
+dw write com.apple.ActivityMonitor SortDirection -int 0
 
 # TextEdit as a plain-text, UTF-8 editor.
-defaults write com.apple.TextEdit RichText -int 0
-defaults write com.apple.TextEdit PlainTextEncoding -int 4
-defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4
+dw write com.apple.TextEdit RichText -int 0
+dw write com.apple.TextEdit PlainTextEncoding -int 4
+dw write com.apple.TextEdit PlainTextEncodingForWrite -int 4
 
 # Don't open Photos every time a device is plugged in.
-defaults -currentHost write com.apple.ImageCapture disableHotPlug -bool true
+dw -currentHost write com.apple.ImageCapture disableHotPlug -bool true
 
 # Messages: no substitutions that mangle code pasted into a chat.
-defaults write com.apple.messageshelper.MessageController SOInputLineSettings \
+dw write com.apple.messageshelper.MessageController SOInputLineSettings \
   -dict-add "automaticEmojiSubstitutionEnablediMessage" -bool false
-defaults write com.apple.messageshelper.MessageController SOInputLineSettings \
+dw write com.apple.messageshelper.MessageController SOInputLineSettings \
   -dict-add "automaticQuoteSubstitutionEnabled" -bool false
 
 # Chrome: two-finger swipe should scroll, not navigate back and lose form state.
-defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
-defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false
+dw write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
+dw write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false
 
 ###############################################################################
 # Apply                                                                       #

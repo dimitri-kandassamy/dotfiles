@@ -6,6 +6,11 @@
 
 set -euo pipefail
 
+# Chezmoi re-runs this whenever extensions.txt changes, for even one line.
+# Confirm before it installs everything missing from the list.
+read -r -p "Install missing VS Code extensions now? [y/N] " reply
+[[ "$reply" =~ ^[Yy]$ ]] || { echo "Skipped."; exit 0; }
+
 LIST="{{ .chezmoi.sourceDir }}/vscode/extensions.txt"
 
 if ! command -v code &>/dev/null; then
